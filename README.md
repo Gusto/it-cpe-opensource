@@ -4,17 +4,11 @@ This repo contains various tools used by the CPE team at Gusto to manage our end
 
 ## Chef Cookbooks
 
-- cpe_activedirectory - uses dsconfigad to adjust bind configuration on macbooks
-- cpe_hot_corners - enforce a hot corner and bug users to set one
-> Dependent on cpe_yo
-- cpe_yo - send or schedule Yo alerts (thanks Shea Craig!).
-> Dependent on Yo installation (we use Munki)
-- cpe_printers - manage CUPs printers
-- cpe_textexpander - manage TextExpander5 configuration and text snippets
-- cpe_zoom - Manage ZoomIT configuration
-> Only works with the ZoomIT package, not vanilla consumer zoom
+"API patterned" chef cookbooks which support user/team/node customization. See cookbook readmes for dependencies and usage.
 
-- node_functions - Our node functions. We recommend keeping a cpe_utils/node_functions folder, and including multiple repos' node_functions file (Uber, Facebook) in a predetermined order.
+### node_functions
+
+Our node functions. We recommend keeping a cpe_utils/node_functions folder, and including multiple repos' node_functions file (Uber, Facebook) in a predetermined order.
 
 ## Autopromote
 
