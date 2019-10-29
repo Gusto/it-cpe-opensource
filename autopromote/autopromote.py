@@ -265,7 +265,7 @@ def main():
                 get_pkgs(os.path.join(CONFIG["munki_repo"], "pkgsinfo")),
             ),
         )
-        promotions = promote_pkgs(pkgs)
+        promotions = promote_pkgs([p for p in pkgs])
         logger.debug("Calling makecatalogs...")
         subprocess.call(["/usr/local/munki/makecatalogs", CONFIG["munki_repo"]], stdout=open(os.devnull, 'w'))
     except Exception as e:
