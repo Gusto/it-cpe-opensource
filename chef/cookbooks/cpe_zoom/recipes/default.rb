@@ -8,4 +8,6 @@
 # This product includes software developed by
 # ZenPayroll, Inc., dba Gusto (http://www.gusto.com/).
 
+return unless node.macos?
+
 cpe_zoom 'Configure zoom.us'
