@@ -11,4 +11,6 @@
 # ZenPayroll, Inc., dba Gusto (http://www.gusto.com/).
 #
 
+return unless node.macos?
+
 cpe_activedirectory 'Apply dsconfigad commands'
