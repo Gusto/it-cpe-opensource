@@ -22,7 +22,6 @@ default_action :config
 require 'plist'
 
 action :config do
-  return unless node.macos?
   return unless node['cpe_zoom']['configure']
 
   prefs = node['cpe_zoom']['client_preferences'].reject { |_k, v| v.nil? }
