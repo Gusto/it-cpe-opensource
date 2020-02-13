@@ -19,8 +19,6 @@ resource_name :cpe_zoom
 provides :cpe_zoom
 default_action :config
 
-require 'plist'
-
 action :config do
   return unless node['cpe_zoom']['configure']
 
