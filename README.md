@@ -4,7 +4,7 @@ This repo contains various tools used by the CPE team at Gusto to manage our end
 
 ## Chef Cookbooks
 
-"API patterned" chef cookbooks which support user/team/node customization. See cookbook readmes for dependencies and usage.
+CPE attributes-API patterned chef cookbooks which support user/team/node customization. See cookbook readmes for dependencies and usage.
 
 ### node_functions
 
