@@ -1,0 +1,64 @@
+#!/bin/bash
+# Managed by chef
+# All manual changes will be overwritten
+
+set -euf -o pipefail
+
+
+function help {
+  echo "<%= @command_name %> [cmd]
+
+  A metaprogrammed shim for non-interactively (or less-interactively) managing your Cisco AnyConnect VPN Client connection.
+
+  cmds:
+    hosts|state|stats: Passthrough to Cisco bin.
+    disconnect: As on the tin.
+    help: This message.
+  <% @flags.each do |flag, endpoint| %>
+    <%= flag %>: Connect to <%= endpoint %>.
+  <% end %>
+
+  default cmd:
+    <%= @default %>"
+  exit 0
+}
+
+function passthrough {
+  /opt/cisco/anyconnect/bin/vpn $1
+  exit 0
+}
+
+function disconnect {
+  /opt/cisco/anyconnect/bin/vpn -s disconnect | grep "state:" | tail -1 | awk '{ print $NF }'
+  /usr/bin/killall "Cisco AnyConnect Secure Mobility Client"
+  exit 0
+}
+
+
+if [ $# -lt 1 ]; then
+  cmd="<%= @default %>"
+else
+  cmd=$1
+fi
+
+case $cmd in
+<% @flags.each do |flag, endpoint| %>
+  <%= flag %>) endpoint="<%= endpoint %>";;
+<% end %>
+  disconnect) disconnect;;
+  hosts|state|stats) passthrough $cmd;;
+  *) help;;
+esac
+
+
+set +e +o pipefail
+/usr/bin/killall "Cisco AnyConnect Secure Mobility Client"
+set -euf -o pipefail
+
+/opt/cisco/anyconnect/bin/vpn -s connect "$endpoint" <<- EOF
+<%= @passcode %>
+exit
+EOF
+/usr/bin/open "/Applications/Cisco/Cisco AnyConnect Secure Mobility Client.app"
+
+exit 0
