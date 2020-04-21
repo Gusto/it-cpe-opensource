@@ -51,12 +51,18 @@ action_class do # rubocop:disable Metrics/BlockLength
 
   def bind
     bind_options = node['cpe_activedirectory']['bind_options']
+    options_missing = false
     bind_options.each do |option|
       if option.nil? || option.empty?
         log "cpe_activedirectory binding_option #{option} is missing" do
           level :warn
         end
+        options_missing = true
       end
+    end
+
+    if options_missing
+      return
     end
 
     if node['cpe_activedirectory']['bind_method'] == 'profile_resource'
