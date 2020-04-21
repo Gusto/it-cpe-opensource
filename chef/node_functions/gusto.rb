@@ -207,18 +207,6 @@ class Chef
       serial
     end
 
-    # Returns the full dsconfigad profile
-    def dsconfigad_profile
-      unless macos?
-        Chef::Log.warn('node.dsconfigad called on non-OS X!')
-        return nil
-      end
-      cmd = Mixlib::ShellOut.new('/usr/sbin/dsconfigad -xml -show')
-      cmd.run_command
-      cmd.error!
-      Plist.parse_xml(cmd.stdout.strip)
-    end
-
     def manufacturer
       if node.macos?
         'Apple'
