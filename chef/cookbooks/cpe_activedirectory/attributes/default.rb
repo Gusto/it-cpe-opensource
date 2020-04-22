@@ -91,6 +91,7 @@ default['cpe_activedirectory'] = {
       'shell' => nil, # 'none' for no shell or specify a default shell '/bin/bash'
     },
   },
+  'remediate' => false,
   'unbind' => false,
   'unbind_method' => 'profile_resource', # 'profile_resource' or 'execute_resource'
   'what_if_execution' => false, # Print dsconfigad cmds that would be run, but do not execute

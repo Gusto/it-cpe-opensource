@@ -56,6 +56,7 @@ Binding Options:
 * node['cpe_activedirectory']['bind_options']['ClientID']
 * node['cpe_activedirectory']['bind_options']['HostName']
 * node['cpe_activedirectory']['bind_options']['ADOrganizationalUnit']
+* node['cpe_activedirectory']['remediate']
 * node['cpe_activedirectory']['unbind']
 * node['cpe_activedirectory']['unbind_method'] (defaults to profile_resource)
 
@@ -105,6 +106,19 @@ node.default['cpe_activedirectory']['options']['administrative']['packetencrypt'
 node.default['cpe_activedirectory']['options']['administrative']['passinterval'] = 30
 ```
 
+Auto remediation
+
+```
+node.default['cpe_activedirectory']['bind'] = true
+node.default['cpe_activedirectory']['remediate'] = true
+```
+
+Auto remediation (alternative)
+
+```
+node.default['cpe_activedirectory']['bind'] = true
+node.default['cpe_activedirectory']['unbind'] = true
+```
 
 Dependencies
 ----------

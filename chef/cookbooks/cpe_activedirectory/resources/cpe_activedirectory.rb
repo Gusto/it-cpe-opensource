@@ -17,7 +17,7 @@ default_action :run
 property :scope, default: 'all'
 
 action :run do
-  unbind if unbind?
+  unbind if remediate? || unbind?
   bind if bind?
   configure if configure?
 end
@@ -29,6 +29,10 @@ action_class do # rubocop:disable Metrics/BlockLength
 
   def configure?
     node['cpe_activedirectory']['configure']
+  end
+
+  def remediate?
+    node['cpe_activedirectory']['remediate']
   end
 
   def unbind?
