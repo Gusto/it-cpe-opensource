@@ -204,23 +204,27 @@ action_class do # rubocop:disable Metrics/BlockLength
   end
 
   def unbind_execute
-    username_to_check = node['cpe_activedirectory']['bind_options']['UserName']
+    bind_options = node['cpe_activedirectory']['bind_options']
+    username_to_check = bind_options['UserName']
     unless username_to_check.nil?
       execute 'Force unbinding to domain' do
         command '/usr/sbin/dsconfigad -force -remove -u cpe -p fakepass'
         not_if { node.ad_healthy?(username_to_check) }
+        only_if { node.ad_bound?(bind_options['HostName']) }
       end
     end
   end
 
   def unbind_profile
-    username_to_check = node['cpe_activedirectory']['bind_options']['UserName']
+    bind_options = node['cpe_activedirectory']['bind_options']
+    username_to_check = bind_options['UserName']
     prefix = node['cpe_profiles']['prefix']
     unless username_to_check.nil?
       osx_profile 'Remove Active Directory profile' do
         identifier "#{prefix}.active_directory"
         action :remove
         not_if { node.ad_healthy?(username_to_check) }
+        only_if { node.ad_bound?(bind_options['HostName']) }
       end
     end
   end
