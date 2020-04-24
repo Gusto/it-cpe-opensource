@@ -77,6 +77,8 @@ action_class do # rubocop:disable Metrics/BlockLength
   end
 
   def bind_execute(bind_options)
+    hostname = node['cpe_activedirectory']['bind_ldap_check_hostname']
+    port = node['cpe_activedirectory']['bind_ldap_check_port']
     # Escape everything in case of special characters
     cmd = '/usr/sbin/dsconfigad '\
     "-add \'#{bind_options['HostName']}\' "\
@@ -89,12 +91,15 @@ action_class do # rubocop:disable Metrics/BlockLength
     execute 'Binding to domain' do
       command cmd
       not_if { node.ad_bound?(bind_options['HostName']) }
-      only_if { node.ad_reachable?(node['cpe_activedirectory']['bind_ldap_check_hostname']) }
+      only_if { node.connection_reachable?(hostname) }
+      only_if { node.port_open?(hostname, port) }
     end
   end
 
   def bind_profile(bind_options)
     # Build configuration profile and pass it to cpe_profiles
+    hostname = node['cpe_activedirectory']['bind_ldap_check_hostname']
+    port = node['cpe_activedirectory']['bind_ldap_check_port']
     prefix = node['cpe_profiles']['prefix']
     organization = node['organization'] ? node['organization'] : 'Gusto'
     ad_profile = {
@@ -122,7 +127,7 @@ action_class do # rubocop:disable Metrics/BlockLength
 
     node.default['cpe_profiles']["#{prefix}.active_directory"] = ad_profile
 
-    unless node.ad_reachable?(node['cpe_activedirectory']['bind_ldap_check_hostname'])
+    unless node.connection_reachable?(hostname) || node.port_open?(hostname, port)
       log 'cpe_activedirectory cannot communicate to domain - profile will fail to install' do
         level :warn
       end
@@ -182,7 +187,9 @@ action_class do # rubocop:disable Metrics/BlockLength
   end
 
   def unbind
-    unless node.ad_reachable?(node['cpe_activedirectory']['bind_ldap_check_hostname'])
+    hostname = node['cpe_activedirectory']['bind_ldap_check_hostname']
+    port = node['cpe_activedirectory']['bind_ldap_check_port']
+    unless node.connection_reachable?(hostname) || node.port_open?(hostname, port)
       log 'cpe_activedirectory cannot communicate to domain - will not attempt to force unbind' do
         level :warn
         return

@@ -50,6 +50,7 @@ Advanced Options - Administrative:
 Binding Options:
 * node['cpe_activedirectory']['bind']
 * node['cpe_activedirectory']['bind_ldap_check_hostname']
+* node['cpe_activedirectory']['bind_ldap_check_port']
 * node['cpe_activedirectory']['bind_method'] (defaults to profile_resource)
 * node['cpe_activedirectory']['bind_options']['UserName']
 * node['cpe_activedirectory']['bind_options']['Password']

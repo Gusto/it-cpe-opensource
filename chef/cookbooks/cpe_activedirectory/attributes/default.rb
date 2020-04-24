@@ -24,6 +24,7 @@
 default['cpe_activedirectory'] = {
   'bind' => false,
   'bind_ldap_check_hostname' => nil, # Example: 'ldaps.ad.domain.tld'
+  'bind_ldap_check_port' => '636', # Example: '389' if you are crazy
   'bind_method' => 'profile_resource', # 'profile_resource' or 'execute_resource'
   'bind_options' => {
     'ADOrganizationalUnit' => nil, # Example: 'OU=computers,DC=ad,DC=domain,DC=tld'
