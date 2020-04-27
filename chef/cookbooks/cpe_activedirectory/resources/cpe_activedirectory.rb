@@ -14,7 +14,6 @@
 resource_name :cpe_activedirectory
 provides :cpe_activedirectory
 default_action :run
-property :scope, default: 'all'
 
 action :run do
   unbind if remediate? || unbind?
@@ -58,9 +57,7 @@ action_class do # rubocop:disable Metrics/BlockLength
     options_missing = false
     bind_options.each do |option|
       if option.nil? || option.empty?
-        log "cpe_activedirectory binding_option #{option} is missing" do
-          level :warn
-        end
+        Chef::Log.warn("cpe_activedirectory binding_option #{option} is missing")
         options_missing = true
       end
     end
@@ -128,48 +125,31 @@ action_class do # rubocop:disable Metrics/BlockLength
     node.default['cpe_profiles']["#{prefix}.active_directory"] = ad_profile
 
     unless node.connection_reachable?(hostname) || node.port_open?(hostname, port)
-      log 'cpe_activedirectory cannot communicate to domain - profile will fail to install' do
-        level :warn
-      end
+      Chef::Log.warn('cpe_activedirectory cannot communicate to domain - profile will fail to install')
     end
   end
 
   def configure
-    # Force this into *resource* runtime, not compile time - otherwise this
-    # fails after immediate binds due to already_set being nil
     # https://github.com/facebook/chef-utils/blob/master/Compile-Time-Run-Time.md
-    ruby_block 'Force code into resource runtime' do
-      block do
-        bind_options = node['cpe_activedirectory']['bind_options']
+    if node['cpe_activedirectory']['bind_method'] == 'profile_resource'
+      Chef::Log.warn('cpe_activedirectory configure resource cannot work with profile bind method')
+      return
+    end
 
-        flags_to_run = []
-
-        node['cpe_activedirectory']['options'].each do |root, settings|
-          next unless [root, 'all'].include?(new_resource.scope)
-
-          settings.reject { |_k, v| v.nil? }.each do |key, value|
-            already_set = already_set?(node.active_directory_state, root, key, value)
-            if already_set.nil?
-              log "cpe_activedirectory option #{key} is not supported" do
-                level :warn
-              end
-              next
-            elsif !already_set
-              flags_to_run << "-#{key} #{shell_format(value)}"
-            end
-          end
-        end
-        flags_to_run.each do |flag|
-          cmd = "/usr/sbin/dsconfigad #{flag}"
-          if node['cpe_activedirectory']['what_if_execution']
-            log "Would have run '#{cmd}'" do
-              level :info
-            end
-          else
-            execute "Setting Active Directory value #{flag}" do
-              command cmd
-              only_if { node.ad_bound?(bind_options['HostName']) }
-            end
+    bind_options = node['cpe_activedirectory']['bind_options']
+    node['cpe_activedirectory']['options'].each do |root_key, root_subkeys|
+      next if root_subkeys.all?(NilClass)
+      root_subkeys.reject { |_k, v| v.nil? }.each do |key, value|
+        cmd = "/usr/sbin/dsconfigad -#{key} #{shell_format(value)}"
+        if node['cpe_activedirectory']['what_if_execution']
+          Chef::Log.info("Would have run '#{cmd}'")
+        else
+          execute "Running #{cmd}" do
+            command cmd
+            only_if { node.ad_bound?(bind_options['HostName']) }
+            # If it's nil, we don't currently support the key, so forcing a
+            # secondary bool check ensures it only runs if it's actually false.
+            only_if { already_set?(node.active_directory_state, root_key, key, value) == false }
           end
         end
       end
@@ -190,10 +170,8 @@ action_class do # rubocop:disable Metrics/BlockLength
     hostname = node['cpe_activedirectory']['bind_ldap_check_hostname']
     port = node['cpe_activedirectory']['bind_ldap_check_port']
     unless node.connection_reachable?(hostname) || node.port_open?(hostname, port)
-      log 'cpe_activedirectory cannot communicate to domain - will not attempt to force unbind' do
-        level :warn
-        return
-      end
+      Chef::Log.warn('cpe_activedirectory cannot communicate to domain - will not attempt to force unbind')
+      return
     end
 
     if node['cpe_activedirectory']['unbind_method'] == 'profile_resource'
