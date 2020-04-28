@@ -8,6 +8,11 @@ Requirements
 ------------
 macOS
 
+Notes
+------------
+Attempting to bind with the profile_resource and simultaneously run the
+configure resource will result in the profile failing. The cookbook
+will warn and return if you attempt to do this configuration.
 
 Attributes
 ----------
