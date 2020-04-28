@@ -53,6 +53,12 @@ action_class do # rubocop:disable Metrics/BlockLength
   end
 
   def bind
+    hostname = node['cpe_activedirectory']['bind_ldap_check_hostname']
+    port = node['cpe_activedirectory']['bind_ldap_check_port']
+    unless node.port_open?(hostname, port, 1)
+      Chef::Log.warn('cpe_activedirectory cannot communicate to domain - will not attempt to force bind')
+      return
+    end
     bind_options = node['cpe_activedirectory']['bind_options']
     options_missing = false
     bind_options.each do |option|
@@ -62,9 +68,7 @@ action_class do # rubocop:disable Metrics/BlockLength
       end
     end
 
-    if options_missing
-      return
-    end
+    return if options_missing
 
     if node['cpe_activedirectory']['bind_method'] == 'profile_resource'
       bind_profile(bind_options)
@@ -78,18 +82,17 @@ action_class do # rubocop:disable Metrics/BlockLength
     port = node['cpe_activedirectory']['bind_ldap_check_port']
     # Escape everything in case of special characters
     cmd = '/usr/sbin/dsconfigad '\
-    "-add \'#{bind_options['HostName']}\' "\
-    "-username \'#{bind_options['UserName']}\' "\
-    "-password \'#{bind_options['Password']}\' "\
-    "-computer \'#{bind_options['ClientID']}\' "\
-    "-ou \'#{bind_options['ADOrganizationalUnit']}\' "\
-    '-force'
+      "-add \'#{bind_options['HostName']}\' "\
+      "-username \'#{bind_options['UserName']}\' "\
+      "-password \'#{bind_options['Password']}\' "\
+      "-computer \'#{bind_options['ClientID']}\' "\
+      "-ou \'#{bind_options['ADOrganizationalUnit']}\' "\
+      '-force'
 
     execute 'Binding to domain' do
       command cmd
       not_if { node.ad_bound?(bind_options['HostName']) }
-      only_if { node.connection_reachable?(hostname) }
-      only_if { node.port_open?(hostname, port) }
+      only_if { node.port_open?(hostname, port, 1) }
     end
   end
 
@@ -124,7 +127,7 @@ action_class do # rubocop:disable Metrics/BlockLength
 
     node.default['cpe_profiles']["#{prefix}.active_directory"] = ad_profile
 
-    unless node.connection_reachable?(hostname) || node.port_open?(hostname, port)
+    unless node.port_open?(hostname, port, 1)
       Chef::Log.warn('cpe_activedirectory cannot communicate to domain - profile will fail to install')
     end
   end
@@ -147,8 +150,9 @@ action_class do # rubocop:disable Metrics/BlockLength
           execute "Running #{cmd}" do
             command cmd
             only_if { node.ad_bound?(bind_options['HostName']) }
-            # If it's nil, we don't currently support the key, so forcing a
-            # secondary bool check ensures it only runs if it's actually false.
+            # already_set? returns true/false/nil. If it's nil, the key is
+            # currently unsupported. Forcing a secondary bool check ensures it
+            # only runs if it's actually false.
             only_if { already_set?(node.active_directory_state, root_key, key, value) == false }
           end
         end
@@ -169,7 +173,7 @@ action_class do # rubocop:disable Metrics/BlockLength
   def unbind
     hostname = node['cpe_activedirectory']['bind_ldap_check_hostname']
     port = node['cpe_activedirectory']['bind_ldap_check_port']
-    unless node.connection_reachable?(hostname) || node.port_open?(hostname, port)
+    unless node.port_open?(hostname, port, 1)
       Chef::Log.warn('cpe_activedirectory cannot communicate to domain - will not attempt to force unbind')
       return
     end
