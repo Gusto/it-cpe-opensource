@@ -55,7 +55,8 @@ action_class do # rubocop:disable Metrics/BlockLength
   def bind
     hostname = node['cpe_activedirectory']['bind_ldap_check_hostname']
     port = node['cpe_activedirectory']['bind_ldap_check_port']
-    unless node.port_open?(hostname, port, 1)
+    port_timeout = node['cpe_activedirectory']['bind_ldap_check_port_timeout']
+    unless node.port_open?(hostname, port, port_timeout)
       Chef::Log.warn('cpe_activedirectory cannot communicate to domain - will not attempt to force bind')
       return
     end
@@ -80,6 +81,7 @@ action_class do # rubocop:disable Metrics/BlockLength
   def bind_execute(bind_options)
     hostname = node['cpe_activedirectory']['bind_ldap_check_hostname']
     port = node['cpe_activedirectory']['bind_ldap_check_port']
+    port_timeout = node['cpe_activedirectory']['bind_ldap_check_port_timeout']
     # Escape everything in case of special characters
     cmd = '/usr/sbin/dsconfigad '\
       "-add \'#{bind_options['HostName']}\' "\
@@ -92,7 +94,7 @@ action_class do # rubocop:disable Metrics/BlockLength
     execute 'Binding to domain' do
       command cmd
       not_if { node.ad_bound?(bind_options['HostName']) }
-      only_if { node.port_open?(hostname, port, 1) }
+      only_if { node.port_open?(hostname, port, port_timeout) }
     end
   end
 
@@ -100,6 +102,7 @@ action_class do # rubocop:disable Metrics/BlockLength
     # Build configuration profile and pass it to cpe_profiles
     hostname = node['cpe_activedirectory']['bind_ldap_check_hostname']
     port = node['cpe_activedirectory']['bind_ldap_check_port']
+    port_timeout = node['cpe_activedirectory']['bind_ldap_check_port_timeout']
     prefix = node['cpe_profiles']['prefix']
     organization = node['organization'] ? node['organization'] : 'Gusto'
     ad_profile = {
@@ -127,7 +130,7 @@ action_class do # rubocop:disable Metrics/BlockLength
 
     node.default['cpe_profiles']["#{prefix}.active_directory"] = ad_profile
 
-    unless node.port_open?(hostname, port, 1)
+    unless node.port_open?(hostname, port, port_timeout)
       Chef::Log.warn('cpe_activedirectory cannot communicate to domain - profile will fail to install')
     end
   end
@@ -173,7 +176,8 @@ action_class do # rubocop:disable Metrics/BlockLength
   def unbind
     hostname = node['cpe_activedirectory']['bind_ldap_check_hostname']
     port = node['cpe_activedirectory']['bind_ldap_check_port']
-    unless node.port_open?(hostname, port, 1)
+    port_timeout = node['cpe_activedirectory']['bind_ldap_check_port_timeout']
+    unless node.port_open?(hostname, port, port_timeout)
       Chef::Log.warn('cpe_activedirectory cannot communicate to domain - will not attempt to force unbind')
       return
     end
