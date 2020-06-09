@@ -254,7 +254,7 @@ def notify_slack(promotions, error):
 
 def main():
     logger.info("\n========================================\n")
-    logger.info("Autopromote: scanning munki_repo/pkginfo")
+    logger.info("Autopromote: scanning munki_repo/pkgsinfo")
     promotions = {}
     error = None
     try:
@@ -275,6 +275,7 @@ def main():
     finally:
         if CONFIG["notify_slack"]:
             notify_slack(promotions, error)
+        logger.info("Autopromote: Promotions completed")
         logging.shutdown()
 
 
