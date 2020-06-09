@@ -1,16 +1,16 @@
 #### About
 
-autopromote.py is run on cron on a munki_repo server. It promotes packages between
-catalogs in an order and on a schedule configured in autopromote.json.
+`autopromote.py` is run via `cron` on a `munki_repo` server. It promotes packages between
+catalogs in an order and on a schedule configured in `autopromote.json`.
 
-The script works by storing a "last_promoted" datetime in the \_metadata array on all
-pkginfo.plist files it promotes.
+The script works by storing a `last_promoted` datetime in the `_metadata` array on all
+`pkginfo.plist` files it promotes.
 
 #### Setup
 
-0. `mkdir .venv && virtualenv .venv -P $(which python3) && source .venv/bin/active` (py 3)
+0. `mkdir .venv && virtualenv .venv -p $(which python3) && source ./.venv/bin/activate` (py 3)
 1. `pip install -r requirements.txt`
-2. `python autopromote.py` (or cron to this effect)
+2. `python autopromote.py` (or `cron` to this effect)
 
 #### Config
 
