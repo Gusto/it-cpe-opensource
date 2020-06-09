@@ -6,6 +6,8 @@ catalogs in an order and on a schedule configured in `autopromote.json`.
 The script works by storing a `last_promoted` datetime in the `_metadata` array on all
 `pkginfo.plist` files it promotes.
 
+In order for the script to run properly, your modified `autopromote.json` configuration file must be copied to `/usr/local/munki/autopromote.json`
+
 #### Setup
 
 0. `mkdir .venv && virtualenv .venv -p $(which python3) && source ./.venv/bin/activate` (py 3)
