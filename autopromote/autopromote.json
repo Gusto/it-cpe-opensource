@@ -6,28 +6,33 @@
     "production": {"days": null, "next": null}
   },
   "blacklist": [
-    "Chef",
+    "Chef"
   ],
   "whitelist": [],
-  "remove_old_catalogs": true,
+  "remove_old_catalogs": false,
   "munki_repo": "/usr/local/munki_repo",
   "fields_to_copy": [
-    "postinstall_script",
-    "postuninstall_script",
+    "autoremove",
     "blocking_applications",
-    "icon_name",
     "category",
     "description",
     "developer",
     "display_name",
-    "minimum_os_version"
+    "icon_name",
+    "minimum_os_version",
+    "notes",
+    "OnDemand",
+    "postinstall_script",
+    "postuninstall_script",
+    "uninstall_script",
+    "uninstallable"
   ],
   "force_install_days": 18,
   "force_install_time": "10:00",
   "enforce_force_install_time": true,
   "force_install_blacklist": [],
-  "notify_slack": true,
-  "slack_channel": "munki-alerts",
+  "notify_slack": false,
+  "slack_channel": "CHANGEME",
   "logging_level": "DEBUG",
   "envfile": "/usr/local/munki/.autopromote.env"
 }
