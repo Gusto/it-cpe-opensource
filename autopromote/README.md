@@ -8,7 +8,7 @@ pkginfo.plist files it promotes.
 
 #### Setup
 
-0. `mkdir .venv && virtualenv .venv -P $(which python3) && source .venv/bin/active` (py 3)
+0. `mkdir .venv && virtualenv .venv && source .venv/bin/active` (py 2.7)
 1. `pip install -r requirements.txt`
 2. `python autopromote.py` (or cron to this effect)
 
@@ -33,19 +33,11 @@ If found, any/all of the fields in this array are copied to the newly promoted p
 
 __force_install_days__: If set, all newly promoted pkginfos receive a fresh force_install_after_date matching a T+this value.
 
-__force_install_time__: The time, T+force_install_days, at which force install will take
+__force_install_time__: The hour and minute, T+force_install_days, at which force install will take
 effect.
+
+Format: `{"hour": int, "minute": int}`
 
 __enforce_force_install_time__: Have you decided 4:30 is a bad force install time? Set this value and all pkginfos, once parsed, will have their force_install_after_date changed to reflect the it.
 
 __force_install_blacklist__: A list of pkginfos (as defined in their `name` attribute) on which no force_install_after_date will ever be set.
-
-__notify_slack__: Send a detailed slack notification after a promotion run. Note: this requires a `SLACK_TOKEN` defined in __envfile__ and an existing __slack_channel__ defined.
-
-__logging_level__: Must be a level accepted by Python's logging lib.
-
-__envfile__: A file containing secrets used for this script. At the moment, only `SLACK_TOKEN` lives here.
-
-#### Todo
-
-- Allow for promotion time to be configurable per package category

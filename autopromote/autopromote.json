@@ -1,33 +1,49 @@
 {
-  "catalogs": {
-    "predevelopment": {"days": 3, "next": "development"},
-    "development": {"days": 5, "next": "testing"},
-    "testing": {"days": 5, "next": "production"},
-    "production": {"days": null, "next": null}
-  },
-  "blacklist": [
-    "Chef",
-  ],
-  "whitelist": [],
-  "remove_old_catalogs": true,
-  "munki_repo": "/usr/local/munki_repo",
-  "fields_to_copy": [
-    "postinstall_script",
-    "postuninstall_script",
-    "blocking_applications",
-    "icon_name",
-    "category",
-    "description",
-    "developer",
-    "display_name",
-    "minimum_os_version"
-  ],
-  "force_install_days": 18,
-  "force_install_time": "10:00",
-  "enforce_force_install_time": true,
-  "force_install_blacklist": [],
-  "notify_slack": true,
-  "slack_channel": "munki-alerts",
-  "logging_level": "DEBUG",
-  "envfile": "/usr/local/munki/.autopromote.env"
+	"catalogs": {
+		"import": {
+			"days": 1,
+			"next": "canary"
+		},
+		"canary": {
+			"days": 5,
+			"next": "prerelease",
+			"force_install_days": 4
+		},
+		"prerelease": {
+			"days": 10,
+			"next": "release",
+			"force_install_days": 9
+		},
+		"release": {
+			"days": null,
+			"next": null,
+			"force_install_days": 45
+		}
+	},
+	"denylist": [],
+	"allowlist": [],
+	"remove_old_catalogs": true,
+	"munki_repo": "munki_repo",
+	"fields_to_copy": [
+		"postinstall_script",
+		"postuninstall_script",
+		"blocking_applications",
+		"icon_name",
+		"category",
+		"description",
+		"developer",
+		"display_name",
+		"minimum_os_version"
+	],
+	"force_install_days": 18,
+	"force_install_time": {
+		"hour": 10,
+		"minute": 30
+	},
+	"enforce_force_install_time": true,
+	"force_install_blacklist": [],
+	"notify_slack": true,
+	"slack_channel": "#example-slack-channel",
+	"logging_level": "DEBUG",
+	"envfile": "~/.autopromote.env"
 }
