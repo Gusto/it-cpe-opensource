@@ -18,7 +18,7 @@ __catalogs__: A schedule of catalogs. Each should define the number of days a pk
 should live in this catalog, and the next catalog. If `next` is null, the catalog is
 assumed to be the final catalog, no matter the `days` defined.
 
-__blocklist__: A list of pkginfos (as defined in their `name` attribute) on which no
+__denylist__: A list of pkginfos (as defined in their `name` attribute) on which no
 action will ever be taken.
 
 __allowlist__: A list of pkginfos (as defined in their `name` attribute) on which action
