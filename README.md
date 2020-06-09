@@ -12,6 +12,6 @@ Our node functions. We recommend keeping a cpe_utils/node_functions folder, and 
 
 ## Autopromote
 
-This script promotes munki packages between a set of json-configured catalogs. It can be adapted to any munki setup, so long as it has write access to the pkgsinfo folder. If you use a version controlled munki, you may want to remove the makecatalogs bits.
+This script promotes Munki packages between a set of json-configured catalogs. It can be adapted to any Munki setup, so long as it has write access to the `pkgsinfo` folder. If you use a version controlled Munki, you may want to remove the `makecatalogs` bits.
 
-In addition to the listed requirements.txt, autopromote.py expects munkilib to be install to /usr/local/munki.
+In addition to the listed `requirements.txt`, `autopromote.py` expects `munkilib` to be install to `/usr/local/munki`.
