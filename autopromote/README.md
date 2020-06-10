@@ -40,4 +40,4 @@ Format: `{"hour": int, "minute": int}`
 
 __enforce_force_install_time__: Have you decided 4:30 is a bad force install time? Set this value and all pkginfos, once parsed, will have their force_install_after_date changed to reflect the it.
 
-__force_install_blacklist__: A list of pkginfos (as defined in their `name` attribute) on which no force_install_after_date will ever be set.
+__force_install_denylist__: A list of pkginfos (as defined in their `name` attribute) on which no force_install_after_date will ever be set.
