@@ -18,10 +18,10 @@ __catalogs__: A schedule of catalogs. Each should define the number of days a pk
 should live in this catalog, and the next catalog. If `next` is null, the catalog is
 assumed to be the final catalog, no matter the `days` defined.
 
-__blacklist__: A list of pkginfos (as defined in their `name` attribute) on which no
+__denylist__: A list of pkginfos (as defined in their `name` attribute) on which no
 action will ever be taken.
 
-__whitelist__: A list of pkginfos (as defined in their `name` attribute) on which action
+__allowlist__: A list of pkginfos (as defined in their `name` attribute) on which action
 is permitted. This array takes precedence, define a pkginfo here and all others are
 de facto in the blacklist.
 
@@ -40,4 +40,4 @@ Format: `{"hour": int, "minute": int}`
 
 __enforce_force_install_time__: Have you decided 4:30 is a bad force install time? Set this value and all pkginfos, once parsed, will have their force_install_after_date changed to reflect the it.
 
-__force_install_blacklist__: A list of pkginfos (as defined in their `name` attribute) on which no force_install_after_date will ever be set.
+__force_install_denylist__: A list of pkginfos (as defined in their `name` attribute) on which no force_install_after_date will ever be set.
