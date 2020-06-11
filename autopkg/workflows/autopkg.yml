@@ -1,0 +1,65 @@
+name: Autopkg run
+
+on:
+  watch:
+    types: [started]
+  schedule:
+    - cron: 00 14 * * 1-5
+
+jobs:
+  AutoPkg:
+    runs-on: macos-latest
+    timeout-minutes: 90 # Keeps your builds from running too long
+    steps:
+    - name: Checkout AutoPkg recipes
+      uses: actions/checkout@01aecccf739ca6ff86c0539fbc67a7a5007bbc81 # Pin SHA1 hash instead of version
+      with:
+        fetch-depth: 1
+
+    - name: Install python dependencies
+      run: |
+        python3 -m pip install --upgrade pip
+        pip3 install -r requirements.txt
+
+    - name: Install munki
+      run: |
+        curl -L https://github.com/munki/munki/releases/download/v5.0.0/munkitools-5.0.0.4034.pkg --output /tmp/munkitools.pkg
+        sudo installer -pkg /tmp/munkitools.pkg -target /
+
+    - name: Install autopkg
+      run: |
+        curl -L https://github.com/autopkg/autopkg/releases/download/v2.1/autopkg-2.1.pkg --output /tmp/autopkg.pkg
+        sudo installer -pkg /tmp/autopkg.pkg -target /
+
+    - name: Lint recipes
+      run: |
+        plutil -lint overrides/*.recipe
+
+    - name: Checkout your munki LFS repo
+      uses: actions/checkout@01aecccf739ca6ff86c0539fbc67a7a5007bbc81
+      with:
+        repository: replace_with_your_munki_repo
+        token: ${{ secrets.GITHUB_TOKEN }}
+        fetch-depth: 1
+        ref: refs/heads/master
+        path: munki_repo
+
+    - name: Configure autopkg
+      run: |
+        defaults write com.github.autopkg RECIPE_OVERRIDE_DIRS "$(pwd)"/overrides/
+        defaults write com.github.autopkg RECIPE_REPO_DIR "$(pwd)"/repos/
+        defaults write com.github.autopkg FAIL_RECIPES_WITHOUT_TRUST_INFO -bool YES
+        defaults write com.github.autopkg MUNKI_REPO "$GITHUB_WORKSPACE"/munki_repo
+        defaults write com.github.autopkg GITHUB_TOKEN "${{ secrets.GITHUB_TOKEN }}"
+
+    - name: Add autopkg repos
+      run: |
+        for repo in $(cat repo_list.txt); do autopkg repo-add "$repo" && autopkg repo-update "$repo"; done
+
+    - name: Run makecatalogs
+      run: |
+        /usr/local/munki/makecatalogs munki_repo
+
+    - name: Run autopkg
+      run: |
+        python3 autopkg_tools.py -l recipe_list.json
