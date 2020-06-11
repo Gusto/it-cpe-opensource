@@ -12,7 +12,7 @@ from datetime import datetime
 
 
 DEBUG = False
-SLACK_WEBHOOK = os.environ.get("SLACK_WEBHOOK_TOKEN", "https://hooks.slack.com/services/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")
+SLACK_WEBHOOK = os.environ.get("SLACK_WEBHOOK_TOKEN", None)
 MUNKI_REPO = os.path.join(os.environ["GITHUB_WORKSPACE"], "munki_repo")
 OVERRIDES_DIR = os.path.relpath("overrides/")
 
