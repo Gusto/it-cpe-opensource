@@ -25,6 +25,11 @@ PKGINFOS_PATHS = []
 # Because things get easier if the catalogs are ordered - we don't always need to check "next"
 # in the catalog definition while considering a package for promotion.
 def order_catalogs(catalogs):
+    """
+    Takes a list of catalogs and returns a dict ordered according the
+    configured catalog schedule.
+    """
+
     od = OrderedDict()
     keys = []
     keys_to_process = catalogs.keys()
@@ -54,6 +59,8 @@ def order_catalogs(catalogs):
 
 
 def load_config():
+    """Reads autopromote.json from hardcoded path CONFIG_FILE"""
+
     with open(CONFIG_FILE) as f:
         config = json.load(f)
 
@@ -62,6 +69,8 @@ def load_config():
 
 
 def load_logger(logfile):
+    """Returns logger object pointing to stdout or a file, as configured"""
+
     logger = logging.getLogger("autopromote")
     logger.setLevel(logging.DEBUG)
     formatter = logging.Formatter(
@@ -84,6 +93,8 @@ load_dotenv(dotenv_path=CONFIG.get("envfile", ".autopromote.env"))
 
 
 def get_pkgs(root):
+    """Returns a list of pkginfo paths given a root directory."""
+
     pkgs = []
     for directory, subdirs, pkginfos in os.walk(root):
         for pkginfo in pkginfos:
@@ -92,10 +103,14 @@ def get_pkgs(root):
 
 
 def pkg_version(plist):
+    """Returns parsed semantic version from plist"""
+
     return semantic_version.parse(plist["version"])
 
 
 def safe_read_pkg(pkginfo):
+    """Returns the contents of a pkginfo plist, or, if a parsing error occurs, None"""
+
     logger.info(f"parsing {pkginfo}")
     try:
         plist = Plist.readPlist(pkginfo)
@@ -110,6 +125,8 @@ def safe_read_pkg(pkginfo):
 
 
 def get_force_install_time(plist):
+    """Returns a force install datetime shifted to match the configured force_install_time"""
+
     f = arrow.get(plist["force_install_after_date"])
     r = f.shift(
         hours=(int(CONFIG["force_install_time"]["hour"] or 0)-f.hour),
@@ -119,6 +136,8 @@ def get_force_install_time(plist):
 
 
 def get_previous_pkg(current):
+    """Returns the previous version of package in PKGINFOS_PATHS"""
+
     last = None
     current_version = pkg_version(current)
     for plist, pkginfo in PKGINFOS_PATHS:
@@ -146,6 +165,8 @@ def get_previous_pkg(current):
 
 
 def get_force_install_days(catalog):
+    """Returns the number of days a package should live in a catalog, as configured"""
+
     days = CONFIG["catalogs"].get(catalog, {}).get("force_install_days")
     if not isinstance(days, int):
         days = CONFIG["force_install_days"]
@@ -154,6 +175,11 @@ def get_force_install_days(catalog):
 
 
 def get_ideal_catalogs(catalogs):
+    """
+    Given a list of catalogs, returns the catalog which appears last
+    in CONFIG['catalog_order'] and and the list of catalogs leading up to that catalog
+    """
+
     custom_catalogs = [c for c in catalogs if not c in CONFIG["catalog_order"]]
     config_catalogs = [c for c in CONFIG["catalog_order"] if c in catalogs]
     latest_catalog = None if not config_catalogs else config_catalogs[-1]
@@ -173,6 +199,8 @@ def get_ideal_catalogs(catalogs):
 
 
 def get_next_catalog(latest_catalog):
+    """Returns the next catalog configured in the promotion schedule"""
+
     for i, catalog in enumerate(CONFIG["catalog_order"]):
         if catalog == latest_catalog:
             try:
@@ -184,6 +212,13 @@ def get_next_catalog(latest_catalog):
 
 
 def promote_pkg(current_plist, path):
+    """
+    Given a pkginfo plist, parse its catalogs, apply a new catalog (promotion)
+    and shift force_install_after_date if neccessary.
+
+    Returns a boolean promoted and a dict results
+    """
+
     denylist = CONFIG["denylist"]
     allowlist = CONFIG["allowlist"]
 
@@ -279,6 +314,12 @@ def promote_pkg(current_plist, path):
 
 
 def promote_pkgs(pkginfos):
+    """
+    Iterate over pkgs and pass them to promote_pkg if not in denylist.
+
+    Returns a list of results from promote_pkg.
+    """
+
     denylist = CONFIG["denylist"]
     allowlist = CONFIG["allowlist"]
     promotions = {}
@@ -294,6 +335,10 @@ def promote_pkgs(pkginfos):
 
 
 def notify_slack(promotions, error):
+    """
+    Given a list of resuilts from promote_pkgs, send a slack alert with a summary
+    """
+
     token = os.environ.get("SLACK_TOKEN")
     if not token:
         logger.error("No SLACK_TOKEN is in environment, skipping slack output")
@@ -330,12 +375,19 @@ def main():
     promotions = {}
     error = None
     try:
+        # Hello, this looks scary. It is not. We filter a list of packages
+        # by whether safe_read_pkg returns None or a parsed plist.
+        # This generates our list of valid packages to operate on.
         pkgs = filter(
             lambda x: x[0] != None, map(lambda x: [safe_read_pkg(x), x], get_pkgs(repo))
         )
 
+        # We write that list to a global variable. Several functions iterate
+        # over it, and this seems cleaner than passing the value around or going full OO.
         global PKGINFOS_PATHS
         PKGINFOS_PATHS = [p for p in pkgs]
+
+        # Let's do the promoting!
         promotions = promote_pkgs(PKGINFOS_PATHS)
 
         logger.debug("Calling makecatalogs...")
