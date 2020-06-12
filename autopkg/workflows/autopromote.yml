@@ -1,0 +1,58 @@
+name: Autopromote
+
+on:
+  schedule:
+    - cron:  '30 16 * * *'
+
+jobs:
+  autopromote:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+    - name: Checkout this repo
+      uses: actions/checkout@01aecccf739ca6ff86c0539fbc67a7a5007bbc81
+      with:
+        fetch-depth: 1
+
+    - name: Checkout your munki LFS repo
+      uses: actions/checkout@01aecccf739ca6ff86c0539fbc67a7a5007bbc81
+      with:
+        fetch-depth: 1
+        repository: replace_with_your_munki_repo
+        ref: refs/heads/master
+        path: munki_repo
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Disable makecatalogs
+      run: |
+        echo -e "#!/bin/bash\necho 'makecatalogs disabled'" >> ~/makecatalogs
+        sudo install -D -m 777 ~/makecatalogs /usr/local/munki/makecatalogs
+
+    - name: Configure autopromote
+      run: |
+        sudo cp autopromote.json /usr/local/munki/autopromote.json
+        echo "export SLACK_TOKEN='${{ secrets.SLACK_TOKEN }}'" >> ~/.autopromote.env
+        sudo install -m 777 /dev/null /var/log/autopromote.log
+        sudo ln -s munki_repo/ /usr/local/munki_repo
+
+    - name: Install python dependencies
+      run: |
+        sudo apt-get install -y python3-setuptools
+        pip3 install -r autopromote/requirements.txt
+        pip3 install packaging
+
+    - name: Run autopromote
+      run: |
+        python3 autopromote/autopromote.py
+      env:
+        SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
+
+    - name: Push changes
+      run: |
+        cd munki_repo/
+        git config --global user.name "runner"
+        git config --global user.email "runner@githubactions.local"
+        git checkout -b "autopromote-`date +'%Y-%m-%d'`"
+        git add pkgsinfo/
+        if git diff --exit-code; then git commit -m "`date +'%Y-%m-%d'` autopromote" && git push --set-upstream origin "autopromote-`date +'%Y-%m-%d'`"; else echo "Nothing to commit"; fi

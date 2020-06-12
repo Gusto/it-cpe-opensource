@@ -20,10 +20,10 @@ __catalogs__: A schedule of catalogs. Each should define the number of days a pk
 should live in this catalog, and the next catalog. If `next` is null, the catalog is
 assumed to be the final catalog, no matter the `days` defined.
 
-__blacklist__: A list of pkginfos (as defined in their `name` attribute) on which no
+__denylist__: A list of pkginfos (as defined in their `name` attribute) on which no
 action will ever be taken.
 
-__whitelist__: A list of pkginfos (as defined in their `name` attribute) on which action
+__allowlist__: A list of pkginfos (as defined in their `name` attribute) on which action
 is permitted. This array takes precedence, define a pkginfo here and all others are
 de facto in the blacklist.
 
@@ -35,19 +35,11 @@ If found, any/all of the fields in this array are copied to the newly promoted p
 
 __force_install_days__: If set, all newly promoted pkginfos receive a fresh force_install_after_date matching a T+this value.
 
-__force_install_time__: The time, T+force_install_days, at which force install will take
+__force_install_time__: The hour and minute, T+force_install_days, at which force install will take
 effect.
+
+Format: `{"hour": int, "minute": int}`
 
 __enforce_force_install_time__: Have you decided 4:30 is a bad force install time? Set this value and all pkginfos, once parsed, will have their force_install_after_date changed to reflect the it.
 
-__force_install_blacklist__: A list of pkginfos (as defined in their `name` attribute) on which no force_install_after_date will ever be set.
-
-__notify_slack__: Send a detailed slack notification after a promotion run. Note: this requires a `SLACK_TOKEN` defined in __envfile__ and an existing __slack_channel__ defined.
-
-__logging_level__: Must be a level accepted by Python's logging lib.
-
-__envfile__: A file containing secrets used for this script. At the moment, only `SLACK_TOKEN` lives here.
-
-#### Todo
-
-- Allow for promotion time to be configurable per package category
+__force_install_denylist__: A list of pkginfos (as defined in their `name` attribute) on which no force_install_after_date will ever be set.

@@ -8,9 +8,9 @@
 # Copyright 2019 ZenPayroll, Inc., dba Gusto
 #
 # This product includes software developed by
-# ZenPayroll, Inc., dba Gusto (http://www.gusto.com/).
+# ZenPayroll, Inc., dba Gusto (https://www.gusto.com/).
 #
 
 return unless node.macos?
 
-cpe_activedirectory 'Apply dsconfigad commands'
+cpe_activedirectory 'Apply cpe_activedirectory'

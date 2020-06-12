@@ -1,38 +1,54 @@
 {
-  "catalogs": {
-    "predevelopment": {"days": 3, "next": "development"},
-    "development": {"days": 5, "next": "testing"},
-    "testing": {"days": 5, "next": "production"},
-    "production": {"days": null, "next": null}
-  },
-  "blacklist": [
-    "Chef"
-  ],
-  "whitelist": [],
-  "remove_old_catalogs": false,
-  "munki_repo": "/usr/local/munki_repo",
-  "fields_to_copy": [
+	"catalogs": {
+		"import": {
+			"days": 1,
+			"next": "canary"
+		},
+		"canary": {
+			"days": 5,
+			"next": "prerelease",
+			"force_install_days": 4
+		},
+		"prerelease": {
+			"days": 10,
+			"next": "release",
+			"force_install_days": 9
+		},
+		"release": {
+			"days": null,
+			"next": null,
+			"force_install_days": 45
+		}
+	},
+	"denylist": [],
+	"allowlist": [],
+	"remove_old_catalogs": false,
+	"munki_repo": "munki_repo",
+	"fields_to_copy": [
     "autoremove",
-    "blocking_applications",
-    "category",
-    "description",
-    "developer",
-    "display_name",
-    "icon_name",
-    "minimum_os_version",
+		"blocking_applications",
+		"category",
+		"description",
+		"developer",
+		"display_name",
+		"icon_name",
+		"minimum_os_version",
     "notes",
     "OnDemand",
     "postinstall_script",
-    "postuninstall_script",
+		"postuninstall_script",
     "uninstall_script",
     "uninstallable"
-  ],
-  "force_install_days": 18,
-  "force_install_time": "10:00",
-  "enforce_force_install_time": true,
-  "force_install_blacklist": [],
-  "notify_slack": false,
-  "slack_channel": "CHANGEME",
-  "logging_level": "DEBUG",
-  "envfile": "/usr/local/munki/.autopromote.env"
+	],
+	"force_install_days": 18,
+	"force_install_time": {
+		"hour": 10,
+		"minute": 30
+	},
+	"enforce_force_install_time": true,
+	"force_install_blacklist": [],
+	"notify_slack": false,
+	"slack_channel": "#example-slack-channel",
+	"logging_level": "DEBUG",
+	"envfile": "~/.autopromote.env"
 }
