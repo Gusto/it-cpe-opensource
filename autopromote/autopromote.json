@@ -25,7 +25,7 @@
 	"remove_old_catalogs": false,
 	"munki_repo": "munki_repo",
 	"fields_to_copy": [
-    "autoremove",
+		"autoremove",
 		"blocking_applications",
 		"category",
 		"description",
@@ -33,12 +33,12 @@
 		"display_name",
 		"icon_name",
 		"minimum_os_version",
-    "notes",
-    "OnDemand",
-    "postinstall_script",
+		"notes",
+		"OnDemand",
+		"postinstall_script",
 		"postuninstall_script",
-    "uninstall_script",
-    "uninstallable"
+		"uninstall_script",
+		"uninstallable"
 	],
 	"force_install_days": 18,
 	"force_install_time": {
