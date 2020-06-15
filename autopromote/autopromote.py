@@ -266,10 +266,10 @@ def promote_pkg(current_plist, path):
         logger.debug(
             f"Package {fullname} has no last_promoted value! Setting it to now."
         )
+        previous_pkg = get_previous_pkg(plist)
 
         # If this is a newly imported package (in first defined catalog)
         if latest_catalog == CONFIG["catalog_order"][0]:
-            previous_pkg = get_previous_pkg(plist)
             promotion_due = True
 
         if previous_pkg:
