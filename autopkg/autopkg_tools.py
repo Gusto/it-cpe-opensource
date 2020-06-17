@@ -113,7 +113,7 @@ def git_run(cmd):
         print("Running " + cmd)
 
     try:
-        result = subprocess.run(cmd, shell=True, cwd=MUNKI_REPO, capture_output=True)
+        result = subprocess.run(" ".join(cmd), shell=True, cwd=MUNKI_REPO, capture_output=True)
     except subprocess.CalledProcessError as e:
         print(e.stderr)
         raise e
