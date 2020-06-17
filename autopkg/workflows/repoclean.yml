@@ -1,0 +1,41 @@
+name: Repoclean
+
+on:
+  schedule:
+    - cron:  00 16 * * 3
+
+jobs:
+  repoclean:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+    - name: Checkout munki code
+      uses: actions/checkout@01aecccf739ca6ff86c0539fbc67a7a5007bbc81
+      with:
+        repository: munki/munki
+        fetch-depth: 1
+        ref: e2d88c009108b84613cfd88c4a0c5a008dc5df76
+        path: munki
+
+    - name: Checkout your munki LFS repo
+      uses: actions/checkout@01aecccf739ca6ff86c0539fbc67a7a5007bbc81
+      with:
+        fetch-depth: 1
+        repository: replace_with_your_munki_repo
+        ref: refs/heads/master
+        path: munki_repo
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Run Munki repoclean
+      run: |
+        yes | python3 munki/code/client/repoclean --keep 2 munki_repo
+
+    - name: Push changes
+      run: |
+        cd munki_repo/
+        git config --global user.name "runner"
+        git config --global user.email "runner@githubactions.local"
+        git checkout -b "repoclean-`date +'%Y-%m-%d'`"
+        git add -u pkgsinfo/ pkgs/
+        if git diff --exit-code; then git commit -m "`date +'%Y-%m-%d'` repoclean" && git push --set-upstream origin "repoclean-`date +'%Y-%m-%d'`"; else echo "Nothing to commit"; fi
