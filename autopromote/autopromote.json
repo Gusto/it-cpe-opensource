@@ -41,7 +41,7 @@
 		"minute": 30
 	},
 	"enforce_force_install_time": true,
-	"force_install_blacklist": [],
+	"force_install_denylist": [],
 	"notify_slack": true,
 	"slack_channel": "#example-slack-channel",
 	"logging_level": "DEBUG",
