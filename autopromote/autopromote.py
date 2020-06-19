@@ -129,8 +129,8 @@ def get_force_install_time(plist):
 
     f = arrow.get(plist["force_install_after_date"])
     r = f.shift(
-        hours=(int(CONFIG["force_install_time"]["hour"] or 0)-f.hour),
-        minutes=(int(CONFIG["force_install_time"]["minute"] or 0)-f.minute),
+        hours=(int(CONFIG["force_install_time"]["hour"] or 0) - f.hour),
+        minutes=(int(CONFIG["force_install_time"]["minute"] or 0) - f.minute),
     )
     return r.datetime
 
@@ -211,6 +211,20 @@ def get_next_catalog(latest_catalog):
     return None
 
 
+def get_channel_multiplier(plist):
+    """Retrieve the float multiplier for plist's channel. Returns multiplier or 1"""
+
+    channel = plist.get("_metadata", {}).get("channel")
+    if channel is None:
+        return 1
+
+    multiplier = CONFIG.get("channels", {}).get(channel)
+    if not isinstance(multiplier, (int, float)) or multiplier == 0:
+        return 1
+
+    return float(multiplier)
+
+
 def promote_pkg(current_plist, path):
     """
     Given a pkginfo plist, parse its catalogs, apply a new catalog (promotion)
@@ -280,7 +294,9 @@ def promote_pkg(current_plist, path):
         else:
             logger.info(f"No previous package found for {fullname}!")
     else:
-        promotion_due = (arrow.now() - last_promoted).days >= promotion_period
+        promotion_due = (arrow.now() - last_promoted).days >= (
+            promotion_period * get_channel_multiplier(plist)
+        )
 
     if not promotion_due:
         return promoted, result
@@ -302,10 +318,7 @@ def promote_pkg(current_plist, path):
             arrow.now().shift(days=+get_force_install_days(next_catalog)).datetime
         )
 
-        if (
-            CONFIG["enforce_force_install_time"]
-            and CONFIG.get("force_install_time")
-        ):
+        if CONFIG["enforce_force_install_time"] and CONFIG.get("force_install_time"):
             plist["force_install_after_date"] = get_force_install_time(plist)
 
     logger.info(f"Promoted {fullname} from {result['from']} to {result['to']}")

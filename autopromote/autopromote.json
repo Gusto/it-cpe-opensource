@@ -1,4 +1,8 @@
 {
+	"channels": {
+		"slow": 0.5,
+		"fast": 2
+	},
 	"catalogs": {
 		"import": {
 			"days": 1,

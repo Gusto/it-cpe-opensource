@@ -23,7 +23,7 @@ action will ever be taken.
 
 __allowlist__: A list of pkginfos (as defined in their `name` attribute) on which action
 is permitted. This array takes precedence, define a pkginfo here and all others are
-de facto in the blacklist.
+de facto in the denylist.
 
 __munki_repo__: full path to the root munki_repo.
 
@@ -41,3 +41,9 @@ Format: `{"hour": int, "minute": int}`
 __enforce_force_install_time__: Have you decided 4:30 is a bad force install time? Set this value and all pkginfos, once parsed, will have their force_install_after_date changed to reflect the it.
 
 __force_install_denylist__: A list of pkginfos (as defined in their `name` attribute) on which no force_install_after_date will ever be set.
+
+__channels__: Channels allow one to specify a faster or slower promotion schedule for specific packages. This is a dictionary of channel names and an int or float multiplier:
+
+`{"channels": {"slow": 2.5}}` - this channel configuration would cause any packages in the "slow" channel to be promoted 2.5 times *slower*. This is achieved by multiplying the current promotion period by the channel's value. For faster promotion schedules, specify a float modifier of less than 1.
+
+You may add a package to a channel by adding a channel key to the pkginfo metadata dict. If no channel is specified, or if a non-float/int value is specified, the channel modifier is always 1. A package in the "slow" channel would have `{ "_metadata": { "channel": "slow" }}` in its pkginfo.
