@@ -1,7 +1,7 @@
 {
 	"channels": {
-		"slow": 0.5,
-		"fast": 2
+		"slow": 2.5,
+		"fast": 0.5
 	},
 	"catalogs": {
 		"import": {
