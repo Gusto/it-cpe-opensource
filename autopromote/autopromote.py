@@ -216,11 +216,11 @@ def get_channel_multiplier(plist):
 
     channel = plist.get("_metadata", {}).get("channel")
     if channel is None:
-        return 1
+        return 1.0
 
     multiplier = CONFIG.get("channels", {}).get(channel)
     if not isinstance(multiplier, (int, float)) or multiplier == 0:
-        return 1
+        return 1.0
 
     return float(multiplier)
 
