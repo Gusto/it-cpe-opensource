@@ -42,6 +42,10 @@ __enforce_force_install_time__: Have you decided 4:30 is a bad force install tim
 
 __force_install_denylist__: A list of pkginfos (as defined in their `name` attribute) on which no force_install_after_date will ever be set.
 
+__patch_tuesday__: An integer, 0-6, which specified the weekday to force force install dates to. For instance, if the force install date is 7 days from now, which falls on a Friday (4), and patch_tuesday is set to Tuesday (1), the force install date will be shifted by 4 days, to 11 days from now, in order to fall on the next Tuesday. This allows admins to automatically create a weekly predictability in their patch cycle.
+
+A patch_tuesday of `null` will preclude any shift of force install dates.
+
 __channels__: Channels allow one to specify a faster or slower promotion schedule for specific packages. This is a dictionary of channel names and an int or float multiplier:
 
 `{"channels": {"slow": 2.5}}` - this channel configuration would cause any packages in the "slow" channel to be promoted 2.5 times *slower*. This is achieved by multiplying the current promotion period by the channel's value. For faster promotion schedules, specify a float modifier of less than 1. For example, a multiplier of `0.5` would result in a 2x faster promotion schedule.
