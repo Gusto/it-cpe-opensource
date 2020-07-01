@@ -41,3 +41,7 @@ Format: `{"hour": int, "minute": int}`
 __enforce_force_install_time__: Have you decided 4:30 is a bad force install time? Set this value and all pkginfos, once parsed, will have their force_install_after_date changed to reflect the it.
 
 __force_install_denylist__: A list of pkginfos (as defined in their `name` attribute) on which no force_install_after_date will ever be set.
+
+__patch_tuesday__: An integer, 0-6, which specified the weekday to force force install dates to. For instance, if the force install date is 7 days from now, which falls on a Friday (4), and patch_tuesday is set to Tuesday (1), the force install date will be shifted by 4 days, to 11 days from now, in order to fall on the next Tuesday. This allows admins to automatically create a weekly predictability in their patch cycle.
+
+A patch_tuesday of `null` will preclude any shift of force install dates.
