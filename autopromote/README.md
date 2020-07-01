@@ -44,6 +44,6 @@ __force_install_denylist__: A list of pkginfos (as defined in their `name` attri
 
 __channels__: Channels allow one to specify a faster or slower promotion schedule for specific packages. This is a dictionary of channel names and an int or float multiplier:
 
-`{"channels": {"slow": 2.5}}` - this channel configuration would cause any packages in the "slow" channel to be promoted 2.5 times *slower*. This is achieved by multiplying the current promotion period by the channel's value. For faster promotion schedules, specify a float modifier of less than 1.
+`{"channels": {"slow": 2.5}}` - this channel configuration would cause any packages in the "slow" channel to be promoted 2.5 times *slower*. This is achieved by multiplying the current promotion period by the channel's value. For faster promotion schedules, specify a float modifier of less than 1. For example, a multiplier of `0.5` would result in a 2x faster promotion schedule.
 
 You may add a package to a channel by adding a channel key to the pkginfo metadata dict. If no channel is specified, or if a non-float/int value is specified, the channel modifier is always 1. A package in the "slow" channel would have `{ "_metadata": { "channel": "slow" }}` in its pkginfo.
