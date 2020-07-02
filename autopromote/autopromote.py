@@ -133,9 +133,9 @@ def get_force_install_time(plist):
         minutes=(int(CONFIG["force_install_time"]["minute"] or 0) - f.minute),
     )
 
-    patch_day = CONFIG.get('patch_tuesday')
+    patch_day = CONFIG.get("patch_tuesday")
     if isinstance(patch_day, int) and patch_day <= 6 and patch_day >= 0:
-        r = r.shift(days=(r.weekday() - patch_day)*1)
+        r = r.shift(days=(r.weekday() - patch_day) * 1)
 
     return r.datetime
 
