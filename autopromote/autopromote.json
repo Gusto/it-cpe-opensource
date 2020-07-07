@@ -1,4 +1,8 @@
 {
+	"channels": {
+		"slow": 2.5,
+		"fast": 0.5
+	},
 	"catalogs": {
 		"import": {
 			"days": 1,
@@ -45,5 +49,6 @@
 	"notify_slack": true,
 	"slack_channel": "#example-slack-channel",
 	"logging_level": "DEBUG",
-	"envfile": "~/.autopromote.env"
+	"envfile": "~/.autopromote.env",
+	"patch_tuesday": null
 }
