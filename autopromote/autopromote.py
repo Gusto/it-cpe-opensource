@@ -277,27 +277,27 @@ def promote_pkg(current_plist, path):
         return promoted, result
 
     last_promoted = plist["_metadata"].get("last_promoted")
-    last_promoted = arrow.get(last_promoted) if last_promoted else None
-    promotion_due = False
-
-    # A new package
     if last_promoted is None:
-        logger.debug(
-            f"Package {fullname} has no last_promoted value! Setting it to now."
-        )
-        previous_pkg = get_previous_pkg(plist)
+        logger.debug(f"Package {fullname} has no last_promoted value!")
 
-        # If this is a newly imported package (in first defined catalog)
+        # Is newly imported package
         if latest_catalog == CONFIG["catalog_order"][0]:
-            promotion_due = True
+            last_promoted = plist["_metadata"].get("creation_date")
 
-        if previous_pkg:
-            for key in CONFIG["fields_to_copy"]:
-                # Only copy the previous field if the new plist does not contain a conflicting value
-                if previous_pkg.get(key) and not plist.get(key):
-                    plist[key] = previous_pkg[key]
-        else:
-            logger.info(f"No previous package found for {fullname}!")
+            previous_pkg = get_previous_pkg(plist)
+
+            if previous_pkg:
+                for key in CONFIG["fields_to_copy"]:
+                    # Only copy the previous field if the new plist does not contain a conflicting value
+                    if previous_pkg.get(key) and not plist.get(key):
+                        plist[key] = previous_pkg[key]
+            else:
+                logger.info(f"No previous package found for {fullname}!")
+
+    last_promoted = arrow.get(last_promoted) if last_promoted else None
+
+    if last_promoted is None:
+        promotion_due = False
     else:
         promotion_due = (arrow.now() - last_promoted).days >= (
             promotion_period * get_channel_multiplier(plist)
