@@ -108,12 +108,14 @@ class Recipe(object):
 ### GIT FUNCTIONS
 def git_run(cmd):
     cmd = ["git"] + cmd
+    hide_cmd_output = True
 
     if DEBUG:
-        print("Running " + str(cmd))
+        print("Running " + " ".join(cmd))
+        hide_cmd_output = False
 
     try:
-        result = subprocess.run(" ".join(cmd), shell=True, cwd=MUNKI_REPO, capture_output=True)
+        result = subprocess.run(" ".join(cmd), shell=True, cwd=MUNKI_REPO, capture_output=hide_cmd_output)
     except subprocess.CalledProcessError as e:
         print(e.stderr)
         raise e
@@ -192,7 +194,7 @@ def import_icons():
 
 def slack_alert(recipe, opts):
     if opts.debug:
-        print("Debug: skipping slack notification - debug is enabled!")
+        print("Debug: skipping Slack notification - debug is enabled!")
         return
 
     if SLACK_WEBHOOK is None:
@@ -259,7 +261,7 @@ def main():
         default=MUNKI_REPO,
     )
     parser.add_option(
-        "-d", "--debug", action="store_true", help="Do not send slacks. That is it."
+        "-d", "--debug", action="store_true", help="Disables sending Slack alerts and adds more verbosity to output."
     )
     parser.add_option(
         "-i",
