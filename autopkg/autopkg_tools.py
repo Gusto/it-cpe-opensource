@@ -230,7 +230,7 @@ def slack_alert(recipe, opts):
             {
                 "attachments": [
                     {
-                        "username": "Autopkg Buildkite Runner",
+                        "username": "Autopkg",
                         "as_user": True,
                         "title": task_title,
                         "color": "good" if not recipe.error else "error",
