@@ -1,5 +1,4 @@
 [
 	"Firefox.munki.recipe",
-	"foo.munki.recipe",
-	"bar.munki.recipe"
+	"Firefox.munki.recipe"
 ]

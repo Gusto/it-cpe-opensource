@@ -12,8 +12,8 @@ from datetime import datetime
 
 
 DEBUG = False
-SLACK_WEBHOOK = os.environ.get("SLACK_WEBHOOK_TOKEN", None)
-MUNKI_REPO = os.path.join(os.environ["GITHUB_WORKSPACE"], "munki_repo")
+SLACK_WEBHOOK = os.environ.get("SLACK_WEBHOOK_TOKEN", "https://hooks.slack.com/services/CHANGE_ME")
+MUNKI_REPO = os.path.join(os.getenv("GITHUB_WORKSPACE", "/tmp/"), "munki_repo")
 OVERRIDES_DIR = os.path.relpath("overrides/")
 
 
@@ -151,8 +151,8 @@ def handle_recipe(recipe):
     if recipe.results["imported"]:
         checkout(recipe.branch)
         for imported in recipe.results["imported"]:
-            git_run(["add", f"'pkgs/{ imported["pkg_repo_path"] }'"])
-            git_run(["add", f"'pkgsinfo/{ imported["pkginfo_path"] }'"])
+            git_run(["add", f"pkgs/{ imported['pkg_repo_path'] }"])
+            git_run(["add", f"pkgsinfo/{ imported['pkginfo_path'] }"])
 
         git_run(
             ["commit", "-m", f"'Updated { recipe.name } to { recipe.updated_version }'"]
