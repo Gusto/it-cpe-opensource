@@ -12,7 +12,7 @@ jobs:
     timeout-minutes: 90 # Keeps your builds from running too long
     steps:
     - name: Checkout AutoPkg recipes
-      uses: actions/checkout@01aecccf739ca6ff86c0539fbc67a7a5007bbc81 # Pin SHA1 hash instead of version
+      uses: actions/checkout@28c7f3d2b5162b5ddd3dfd9a45aa55eaf396478b # Pin SHA1 hash instead of version
       with:
         fetch-depth: 1
 
@@ -36,7 +36,7 @@ jobs:
         plutil -lint overrides/*.recipe
 
     - name: Checkout your munki LFS repo
-      uses: actions/checkout@01aecccf739ca6ff86c0539fbc67a7a5007bbc81
+      uses: actions/checkout@28c7f3d2b5162b5ddd3dfd9a45aa55eaf396478b
       with:
         repository: replace_with_your_munki_repo
         token: ${{ secrets.GITHUB_TOKEN }}
@@ -44,13 +44,15 @@ jobs:
         ref: refs/heads/master
         path: munki_repo
 
-    - name: Configure autopkg
+    - name: Configure AutoPkg and git
       run: |
         defaults write com.github.autopkg RECIPE_OVERRIDE_DIRS "$(pwd)"/overrides/
         defaults write com.github.autopkg RECIPE_REPO_DIR "$(pwd)"/repos/
         defaults write com.github.autopkg FAIL_RECIPES_WITHOUT_TRUST_INFO -bool YES
         defaults write com.github.autopkg MUNKI_REPO "$GITHUB_WORKSPACE"/munki_repo
         defaults write com.github.autopkg GITHUB_TOKEN "${{ secrets.GITHUB_TOKEN }}"
+        git config --global user.name "runner"
+        git config --global user.email "runner@githubactions.local"
 
     - name: Add autopkg repos
       run: |

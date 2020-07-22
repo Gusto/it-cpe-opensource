@@ -90,7 +90,7 @@ class Recipe(object):
             ]
             cmd = " ".join(cmd)
             if DEBUG:
-                print("Running " + cmd)
+                print("Running " + str(cmd))
 
             subprocess.check_call(cmd, shell=True)
 
@@ -110,7 +110,7 @@ def git_run(cmd):
     cmd = ["git"] + cmd
 
     if DEBUG:
-        print("Running " + cmd)
+        print("Running " + str(cmd))
 
     try:
         result = subprocess.run(" ".join(cmd), shell=True, cwd=MUNKI_REPO, capture_output=True)
@@ -149,10 +149,8 @@ def handle_recipe(recipe):
     if recipe.results["imported"]:
         checkout(recipe.branch)
         for imported in recipe.results["imported"]:
-            pkgs_imported = imported["pkg_repo_path"]
-            pkgsinfos_imported = imported["pkginfo_path"]
-            git_run(["add", f"'pkgs/{ pkgs_imported }'"])
-            git_run(["add", f"'pkgsinfo/{ pkgsinfos_imported }'"])
+            git_run(["add", f"pkgs/{ imported['pkg_repo_path'] }"])
+            git_run(["add", f"pkgsinfo/{ imported['pkginfo_path'] }"])
 
         git_run(
             ["commit", "-m", f"'Updated { recipe.name } to { recipe.updated_version }'"]

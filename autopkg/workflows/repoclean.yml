@@ -11,7 +11,7 @@ jobs:
 
     steps:
     - name: Checkout munki code
-      uses: actions/checkout@01aecccf739ca6ff86c0539fbc67a7a5007bbc81
+      uses: actions/checkout@28c7f3d2b5162b5ddd3dfd9a45aa55eaf396478b
       with:
         repository: munki/munki
         fetch-depth: 1
@@ -19,7 +19,7 @@ jobs:
         path: munki
 
     - name: Checkout your munki LFS repo
-      uses: actions/checkout@01aecccf739ca6ff86c0539fbc67a7a5007bbc81
+      uses: actions/checkout@28c7f3d2b5162b5ddd3dfd9a45aa55eaf396478b
       with:
         fetch-depth: 1
         repository: replace_with_your_munki_repo
