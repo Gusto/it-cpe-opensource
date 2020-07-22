@@ -58,7 +58,7 @@ You may add a package to a channel by adding a channel key to the pkginfo metada
 <key>_metadata</key>
 	<dict>
 	   <key>channel</key>
-       <string>slow</string>
+          <string>slow</string>
 	</dict>
 ```
 
