@@ -300,7 +300,9 @@ def promote_pkg(current_plist, path):
         promotion_due = False
     else:
         channel_shifted = promotion_period * get_channel_multiplier(plist)
-        logger.debug(f"Channel-shifted promotion period for {fullname} is {channel_shifted}")
+        logger.debug(
+            f"Channel-shifted promotion period for {fullname} is {channel_shifted}"
+        )
         promotion_due = (arrow.now() - last_promoted).days >= channel_shifted
 
     if not promotion_due:
