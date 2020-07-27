@@ -10,7 +10,11 @@ CPE attributes-API patterned chef cookbooks which support user/team/node customi
 
 Our node functions. We recommend keeping a cpe_utils/node_functions folder, and including multiple repos' node_functions file (Uber, Facebook) in a predetermined order.
 
-## Autopromote
+## autopkg
+
+An example Github actions pipeline for running autopkg.
+
+## autopromote
 
 This script promotes munki packages between a set of json-configured catalogs. It can be adapted to any munki setup, so long as it has write access to the pkgsinfo folder. If you use a version controlled munki, you may want to remove the makecatalogs bits.
 

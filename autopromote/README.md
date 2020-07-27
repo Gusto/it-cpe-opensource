@@ -55,11 +55,11 @@ __channels__: Channels allow one to specify a faster or slower promotion schedul
 You may add a package to a channel by adding a channel key to the pkginfo metadata dict. If no channel is specified, or if a non-float/int value is specified, the channel modifier is always 1. A package in the "slow" channel would have this in its pkginfo:
 
 ```xml
-<key>_metadata</key>
+<key>pkginfo</key>
 	<dict>
 	   <key>channel</key>
           <string>slow</string>
 	</dict>
 ```
 
-If you're using [AutoPkg](https://github.com/autopkg/autopkg) you can configure this in your recipe override, so all versions of a package enter the same channel.
+If you're using [AutoPkg](https://github.com/autopkg/autopkg) you can configure this in your recipe override, so all versions of a package enter the same channel. Simple add the above xml to your package override.
