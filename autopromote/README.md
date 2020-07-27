@@ -62,4 +62,4 @@ You may add a package to a channel by adding a channel key to the pkginfo metada
 	</dict>
 ```
 
-If you're using [AutoPkg](https://github.com/autopkg/autopkg) you can configure this in your recipe override, so all versions of a package enter the same channel. Simple add the above xml to your package override.
+If you're using [AutoPkg](https://github.com/autopkg/autopkg) you can configure this in your recipe override, so all versions of a package enter the same channel. Add the above xml to your package override.
