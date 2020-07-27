@@ -219,7 +219,7 @@ def get_next_catalog(latest_catalog):
 def get_channel_multiplier(plist):
     """Retrieve the float multiplier for plist's channel. Returns multiplier or 1"""
 
-    channel = plist.get("_metadata", {}).get("channel")
+    channel = plist.get("channel")
     if channel is None:
         return 1.0
 
