@@ -13,7 +13,7 @@ from datetime import datetime
 
 DEBUG = False
 SLACK_WEBHOOK = os.environ.get("SLACK_WEBHOOK_TOKEN", None)
-MUNKI_REPO = os.path.join(os.environ["GITHUB_WORKSPACE"], "munki_repo")
+MUNKI_REPO = os.path.join(os.getenv("GITHUB_WORKSPACE", "/tmp/"), "munki_repo")
 OVERRIDES_DIR = os.path.relpath("overrides/")
 
 
@@ -108,12 +108,14 @@ class Recipe(object):
 ### GIT FUNCTIONS
 def git_run(cmd):
     cmd = ["git"] + cmd
+    hide_cmd_output = True
 
     if DEBUG:
-        print("Running " + str(cmd))
+        print("Running " + " ".join(cmd))
+        hide_cmd_output = False
 
     try:
-        result = subprocess.run(" ".join(cmd), shell=True, cwd=MUNKI_REPO, capture_output=True)
+        result = subprocess.run(" ".join(cmd), shell=True, cwd=MUNKI_REPO, capture_output=hide_cmd_output)
     except subprocess.CalledProcessError as e:
         print(e.stderr)
         raise e
@@ -192,11 +194,12 @@ def import_icons():
 
 def slack_alert(recipe, opts):
     if opts.debug:
-        print("Debug: skipping slack notification - debug is enabled!")
+        print("Debug: skipping Slack notification - debug is enabled!")
         return
 
     if SLACK_WEBHOOK is None:
         print("Skipping slack notification - webhook is missing!")
+        return
 
     if recipe.error:
         task_title = f"Failed to import { recipe.name }"
@@ -228,7 +231,7 @@ def slack_alert(recipe, opts):
             {
                 "attachments": [
                     {
-                        "username": "Autopkg Buildkite Runner",
+                        "username": "Autopkg",
                         "as_user": True,
                         "title": task_title,
                         "color": "good" if not recipe.error else "error",
@@ -259,7 +262,7 @@ def main():
         default=MUNKI_REPO,
     )
     parser.add_option(
-        "-d", "--debug", action="store_true", help="Do not send slacks. That is it."
+        "-d", "--debug", action="store_true", help="Disables sending Slack alerts and adds more verbosity to output."
     )
     parser.add_option(
         "-i",
