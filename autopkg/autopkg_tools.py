@@ -12,7 +12,7 @@ from datetime import datetime
 
 
 DEBUG = False
-SLACK_WEBHOOK = os.environ.get("SLACK_WEBHOOK_TOKEN", "https://hooks.slack.com/services/CHANGE_ME")
+SLACK_WEBHOOK = os.environ.get("SLACK_WEBHOOK_TOKEN", None)
 MUNKI_REPO = os.path.join(os.getenv("GITHUB_WORKSPACE", "/tmp/"), "munki_repo")
 OVERRIDES_DIR = os.path.relpath("overrides/")
 
@@ -199,6 +199,7 @@ def slack_alert(recipe, opts):
 
     if SLACK_WEBHOOK is None:
         print("Skipping slack notification - webhook is missing!")
+        return
 
     if recipe.error:
         task_title = f"Failed to import { recipe.name }"
