@@ -36,4 +36,4 @@ Because of how AutoPkg handles relative paths, the directory paths on your machi
 
 ## Credits
 
-[autopkg_tools.py](https://github.com/facebook/IT-CPE/tree/master/legacy/autopkg_tools) from Facebook under a BSD 3-clase license with modifications from [tig](https://6fx.eu).
+[autopkg_tools.py](https://github.com/facebook/IT-CPE/tree/master/legacy/autopkg_tools) from Facebook under a BSD 3-clause license with modifications from [tig](https://6fx.eu).
