@@ -151,8 +151,8 @@ def handle_recipe(recipe):
     if recipe.results["imported"]:
         checkout(recipe.branch)
         for imported in recipe.results["imported"]:
-            git_run(["add", f"pkgs/{ imported['pkg_repo_path'] }"])
-            git_run(["add", f"pkgsinfo/{ imported['pkginfo_path'] }"])
+            git_run(["add", f"'pkgs/{ imported['pkg_repo_path'] }'"])
+            git_run(["add", f"'pkgsinfo/{ imported['pkginfo_path'] }'"])
 
         git_run(
             ["commit", "-m", f"'Updated { recipe.name } to { recipe.updated_version }'"]
