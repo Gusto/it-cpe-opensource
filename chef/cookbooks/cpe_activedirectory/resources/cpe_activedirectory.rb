@@ -104,7 +104,7 @@ action_class do # rubocop:disable Metrics/BlockLength
     port = node['cpe_activedirectory']['bind_ldap_check_port']
     port_timeout = node['cpe_activedirectory']['bind_ldap_check_port_timeout']
     prefix = node['cpe_profiles']['prefix']
-    organization = node['organization'] ? node['organization'] : 'Gusto'
+    organization = node['organization'] ? node['organization'] : 'Gusto' # rubocop:disable Style/UnneededCondition
     ad_profile = {
       'PayloadIdentifier' => "#{prefix}.active_directory",
       'PayloadRemovalDisallowed' => true,
