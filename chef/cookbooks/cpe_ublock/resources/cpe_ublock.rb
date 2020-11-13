@@ -23,7 +23,7 @@ resource_name :cpe_ublock
 default_action :run
 
 action :run do
-  prefs = node['cpe_ublock']['adminSettings'].reject { |_k, v| v.nil? }
+  prefs = node['cpe_ublock']['adminSettings'].compact
   prefix = node['cpe_profiles']['prefix']
   organization = node['organization'] || 'Gusto'
   return if prefs.empty?

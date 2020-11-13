@@ -228,7 +228,7 @@ action_class do
   def create_files
     args = FILE_ARGS
       .map { |arg| [arg, new_resource.send(arg)] }.to_h
-      .reject { |_, val| val.nil? }
+      .compact
     configure_base_directories unless args.empty?
 
     args.each do |arg, val|
@@ -258,7 +258,7 @@ action_class do
 
   def command_line_arguments
     @cli_args ||= arguments_hash
-      .reject { |_, val| val.nil? }
+      .compact
       .sort_by { |arg, val| arg }
       .map { |arg, val| shell_format(arg, val) }
       .join(' ')
