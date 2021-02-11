@@ -21,21 +21,21 @@ jobs:
         python3 -m pip install --upgrade pip
         pip3 install -r requirements.txt
 
-    - name: Install munki
+    - name: Install Munki
       run: |
-        curl -L https://github.com/munki/munki/releases/download/v5.0.0/munkitools-5.0.0.4034.pkg --output /tmp/munkitools.pkg
+        curl -L https://github.com/munki/munki/releases/download/v5.2.1/munkitools-5.2.1.4260.pkg --output /tmp/munkitools.pkg
         sudo installer -pkg /tmp/munkitools.pkg -target /
 
-    - name: Install autopkg
+    - name: Install AutoPkg
       run: |
-        curl -L https://github.com/autopkg/autopkg/releases/download/v2.1/autopkg-2.1.pkg --output /tmp/autopkg.pkg
+        curl -L https://github.com/autopkg/autopkg/releases/download/v2.2/autopkg-2.2.pkg --output /tmp/autopkg.pkg
         sudo installer -pkg /tmp/autopkg.pkg -target /
 
     - name: Lint recipes
       run: |
         plutil -lint overrides/*.recipe
 
-    - name: Checkout your munki LFS repo
+    - name: Checkout your Munki LFS repo
       uses: actions/checkout@28c7f3d2b5162b5ddd3dfd9a45aa55eaf396478b
       with:
         repository: replace_with_your_munki_repo
@@ -54,7 +54,7 @@ jobs:
         git config --global user.name "runner"
         git config --global user.email "runner@githubactions.local"
 
-    - name: Add autopkg repos
+    - name: Add AutoPkg repos
       run: |
         for repo in $(cat repo_list.txt); do autopkg repo-add "$repo" && autopkg repo-update "$repo"; done
 
@@ -62,6 +62,6 @@ jobs:
       run: |
         /usr/local/munki/makecatalogs munki_repo
 
-    - name: Run autopkg
+    - name: Run AutoPkg
       run: |
         python3 autopkg_tools.py -l recipe_list.json
