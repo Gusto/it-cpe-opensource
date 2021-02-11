@@ -15,7 +15,7 @@ jobs:
       with:
         fetch-depth: 1
 
-    - name: Checkout your munki LFS repo
+    - name: Checkout your Munki LFS repo
       uses: actions/checkout@28c7f3d2b5162b5ddd3dfd9a45aa55eaf396478b
       with:
         fetch-depth: 1
@@ -33,7 +33,7 @@ jobs:
       run: |
         sudo cp autopromote.json /usr/local/munki/autopromote.json
         echo "export SLACK_TOKEN='${{ secrets.SLACK_TOKEN }}'" >> ~/.autopromote.env
-        sudo install -m 777 /dev/null /var/log/autopromote.log
+        sudo install -m 644 /dev/null /var/log/autopromote.log
         sudo ln -s munki_repo/ /usr/local/munki_repo
 
     - name: Install python dependencies
