@@ -7,7 +7,7 @@ Requirements
 * macOS (10.9.0 and higher)
 * cpe_workspaceone
 * uber_helpers
-* hubcli/Intelligent Hub installed for use be cpe_workspaceone
+* hubcli/Intelligent Hub installed for use by cpe_workspaceone
 * the device must be enrolled with a WS1 instance, naturally
 * Somewhere to host the middleware script triggered by an HTTP request, such as AWS Lambda and API gateway, Google Cloud Functions, or Apache OpenWhisk.
 
