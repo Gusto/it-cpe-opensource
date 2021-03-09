@@ -12,7 +12,7 @@
 #
 
 resource_name :cpe_activedirectory
-provides :cpe_activedirectory
+provides :cpe_activedirectory, :os => 'darwin'
 default_action :run
 
 action :run do
