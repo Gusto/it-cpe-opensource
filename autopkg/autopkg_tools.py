@@ -167,16 +167,22 @@ def parse_recipes(file_path):
     recipe_list = []
     ext = os.path.splitext(file_path)[1]
 
-    if ext == ".json":
-        parser = json.load
-    elif ext == ".plist":
-        parser = plistlib.load
+    ## Added this section so that we can run individual recipes
+    if ext == ".munki":
+        recipe_list.append(file_path + ".recipe")
+    elif ext == ".recipe":
+        recipe_list.append(file_path)
     else:
-        print(f'Invalid run list extension "{ ext }" (expected plist or json)')
-        sys.exit(1)
+        if ext == ".json":
+            parser = json.load
+        elif ext == ".plist":
+            parser = plistlib.load
+        else:
+            print(f'Invalid run list extension "{ ext }" (expected plist or json)')
+            sys.exit(1)
 
-    with open(file_path, "rb") as f:
-        recipe_list = parser(f)
+        with open(file_path, "rb") as f:
+            recipe_list = parser(f)
 
     return map(Recipe, recipe_list)
 
