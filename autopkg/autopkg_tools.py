@@ -24,6 +24,7 @@ class Recipe(object):
         self.error = False
         self.results = {}
         self.updated = False
+        self.verified = False
 
         self._keys = None
         self._has_run = False
@@ -57,6 +58,29 @@ class Recipe(object):
     def name(self):
         return self.plist["Input"]["NAME"]
 
+    def verify(self):
+        try:
+            cmd = ["/usr/local/bin/autopkg", "verify-trust-info", self.path, "-vvv"]
+            cmd = " ".join(cmd)
+            if DEBUG:
+                print("Running " + str(cmd))
+
+            p = subprocess.Popen(
+                cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True
+            )
+            (output, err) = p.communicate()
+            p_status = p.wait()
+            if p_status == 0:
+                self.verified = True
+            else:
+                err = err.decode()
+                self.results["message"] = err
+
+        except subprocess.CalledProcessError as e:
+            raise e
+
+        return
+
     def _parse_report(self, report):
         with open(report, "rb") as f:
             report_data = plistlib.load(f)
@@ -73,35 +97,40 @@ class Recipe(object):
         return {"imported": imported_items, "failed": failed_items}
 
     def run(self):
-        report = "/tmp/autopkg.plist"
-        if not os.path.isfile(report):
-            # Letting autopkg create them has led to errors on github runners
-            Path(report).touch()
-
-        try:
-            cmd = [
-                "/usr/local/bin/autopkg",
-                "run",
-                self.path,
-                "-v",
-                "--post",
-                "io.github.hjuutilainen.VirusTotalAnalyzer/VirusTotalAnalyzer",
-                "--report-plist",
-                report,
-            ]
-            cmd = " ".join(cmd)
-            if DEBUG:
-                print("Running " + str(cmd))
-
-            subprocess.check_call(cmd, shell=True)
-
-        except subprocess.CalledProcessError as e:
+        if self.verified == False:
             self.error = True
+            self.results["failed"] = True
+            self.results["imported"] = ""
+        else:
+            report = "/tmp/autopkg.plist"
+            if not os.path.isfile(report):
+                # Letting autopkg create them has led to errors on github runners
+                Path(report).touch()
 
-        self._has_run = True
-        self.results = self._parse_report(report)
-        if not self.results["failed"] and not self.error and self.updated_version:
-            self.updated = True
+            try:
+                cmd = [
+                    "/usr/local/bin/autopkg",
+                    "run",
+                    self.path,
+                    "-v",
+                    "--post",
+                    "io.github.hjuutilainen.VirusTotalAnalyzer/VirusTotalAnalyzer",
+                    "--report-plist",
+                    report,
+                ]
+                cmd = " ".join(cmd)
+                if DEBUG:
+                    print("Running " + str(cmd))
+
+                subprocess.check_call(cmd, shell=True)
+
+            except subprocess.CalledProcessError as e:
+                self.error = True
+
+            self._has_run = True
+            self.results = self._parse_report(report)
+            if not self.results["failed"] and not self.error and self.updated_version:
+                self.updated = True
 
         return self.results
 
@@ -147,6 +176,8 @@ def checkout(branch, new=True):
 
 ### Recipe handling
 def handle_recipe(recipe):
+    recipe.verify()
+    # Can add the ability to create a PR for updating the trust info here
     recipe.run()
 
     if recipe.results["imported"]:
@@ -209,18 +240,22 @@ def slack_alert(recipe, opts):
         return
 
     if recipe.error:
-        task_title = f"Failed to import { recipe.name }"
-        if not recipe.results["failed"]:
-            task_description = "Unknown error"
+        if recipe.verified == False:
+            task_title = f"{ recipe.name } failed trust verification"
+            task_description = recipe.results["message"]
         else:
-            task_description = ("Error: {} \n" "Traceback: {} \n").format(
-                recipe.results["failed"][0]["message"],
-                recipe.results["failed"][0]["traceback"],
-            )
+            task_title = f"Failed to import { recipe.name }"
+            if not recipe.results["failed"]:
+                task_description = "Unknown error"
+            else:
+                task_description = ("Error: {} \n" "Traceback: {} \n").format(
+                    recipe.results["failed"][0]["message"],
+                    recipe.results["failed"][0]["traceback"],
+                )
 
-            if "No releases found for repo" in task_description:
-                # Just no updates
-                return
+                if "No releases found for repo" in task_description:
+                    # Just no updates
+                    return
     elif recipe.updated:
         task_title = "Imported %s %s" % (recipe.name, str(recipe.updated_version))
         task_description = (
