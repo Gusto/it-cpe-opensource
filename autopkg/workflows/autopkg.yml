@@ -5,6 +5,11 @@ on:
     types: [started]
   schedule:
     - cron: 00 14 * * 1-5
+  workflow_dispatch: # manually triggered
+    inputs:
+      recipe:
+        description: Recipe to Run (Optional)
+        required: false
 
 jobs:
   AutoPkg:
@@ -65,3 +70,5 @@ jobs:
     - name: Run AutoPkg
       run: |
         python3 autopkg_tools.py -l recipe_list.json
+      env:
+        RECIPE: ${{ github.event.inputs.recipe }}
