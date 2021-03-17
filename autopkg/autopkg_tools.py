@@ -24,7 +24,7 @@ class Recipe(object):
         self.error = False
         self.results = {}
         self.updated = False
-        self.verified = False
+        self.verified = None
 
         self._keys = None
         self._has_run = False
@@ -175,9 +175,10 @@ def checkout(branch, new=True):
 
 
 ### Recipe handling
-def handle_recipe(recipe):
-    recipe.verify()
-    # Can add the ability to create a PR for updating the trust info here
+def handle_recipe(recipe, opts):
+    if not opts.disable_verification:
+        recipe.verify()
+        # Can add the ability to create a PR for updating the trust info here
     recipe.run()
 
     if recipe.results["imported"]:
@@ -307,6 +308,9 @@ def main():
         "-d", "--debug", action="store_true", help="Disables sending Slack alerts and adds more verbosity to output."
     )
     parser.add_option(
+        "-v", "--disable_verification", action="store_true", help="Disables recipe verification."
+    )
+    parser.add_option(
         "-i",
         "--icons",
         action="store_true",
@@ -320,16 +324,13 @@ def main():
 
     no_updates = []
 
-    if RECIPE_TO_RUN:
-        for recipe in parse_recipes(RECIPE_TO_RUN):
-            result = handle_recipe(recipe)
-            slack_alert(recipe, opts)
-    else:
-        if not opts.list:
-            print("Recipe list not provided!")
+    recipes = RECIPE_TO_RUN if RECIPE_TO_RUN else opts.list if opts.list else None
+    if recipes is None:
+            print("Recipe --list or RECIPE_TO_RUN not provided!")
             sys.exit(1)
-        for recipe in parse_recipes(opts.list):
-            result = handle_recipe(recipe)
+
+    for recipe in parse_recipes(recipes):
+            result = handle_recipe(recipe, opts)
             slack_alert(recipe, opts)
 
     if opts.icons:
