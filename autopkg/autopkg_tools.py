@@ -16,7 +16,7 @@ SLACK_WEBHOOK = os.environ.get("SLACK_WEBHOOK_TOKEN", None)
 MUNKI_REPO = os.path.join(os.getenv("GITHUB_WORKSPACE", "/tmp/"), "munki_repo")
 OVERRIDES_DIR = os.path.relpath("overrides/")
 RECIPE_TO_RUN = os.environ.get("RECIPE", None)
-
+failures = []
 
 class Recipe(object):
     def __init__(self, path):
@@ -178,7 +178,17 @@ def checkout(branch, new=True):
 def handle_recipe(recipe, opts):
     if not opts.disable_verification:
         recipe.verify()
-        # Can add the ability to create a PR for updating the trust info here
+        if not recipe.verified:
+            cmd = ["/usr/local/bin/autopkg", "update-trust-info", recipe.path]
+            cmd = " ".join(cmd)
+            if DEBUG:
+                print("Running " + str(cmd))
+
+            p = subprocess.Popen(
+                cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True
+            )
+            (output, err) = p.communicate()
+            failures[recipe.name] = recipe.results["message"]
     recipe.run()
 
     if recipe.results["imported"]:
@@ -336,6 +346,15 @@ def main():
     if opts.icons:
         import_icons()
 
+    if failures:
+        title_file=open("pull_request_title","a+")
+        title_file.write("fix: Update trust for")
+        body_file=open("pull_request_body","a+")
+        for recipe, body in failures.items():
+            title_file.write(" " + recipe)
+            body_file.write(body + "\n")
+        title_file.close()
+        body_file.close()
 
 if __name__ == "__main__":
     main()
