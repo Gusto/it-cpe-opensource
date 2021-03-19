@@ -16,7 +16,6 @@ SLACK_WEBHOOK = os.environ.get("SLACK_WEBHOOK_TOKEN", None)
 MUNKI_REPO = os.path.join(os.getenv("GITHUB_WORKSPACE", "/tmp/"), "munki_repo")
 OVERRIDES_DIR = os.path.relpath("overrides/")
 RECIPE_TO_RUN = os.environ.get("RECIPE", None)
-failures = []
 
 class Recipe(object):
     def __init__(self, path):
@@ -58,28 +57,39 @@ class Recipe(object):
     def name(self):
         return self.plist["Input"]["NAME"]
 
-    def verify(self):
+    def verify_trust_info(self):
+        cmd = ["/usr/local/bin/autopkg", "verify-trust-info", self.path, "-vvv"]
+        cmd = " ".join(cmd)
+
+        if DEBUG:
+            print("Running " + str(cmd))
+
+        p = subprocess.Popen(
+            cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True
+        )
+        (output, err) = p.communicate()
+        p_status = p.wait()
+        if p_status == 0:
+            self.verified = True
+        else:
+            err = err.decode()
+            self.results["message"] = err
+            self.verified = False
+        return self.verified
+
+    def update_trust_info(self):
+        cmd = ["/usr/local/bin/autopkg", "update-trust-info", self.path]
+        cmd = " ".join(cmd)
+
+        if DEBUG:
+            print("Running " + str(cmd))
+
+        # Fail loudly if this exits 0
         try:
-            cmd = ["/usr/local/bin/autopkg", "verify-trust-info", self.path, "-vvv"]
-            cmd = " ".join(cmd)
-            if DEBUG:
-                print("Running " + str(cmd))
-
-            p = subprocess.Popen(
-                cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True
-            )
-            (output, err) = p.communicate()
-            p_status = p.wait()
-            if p_status == 0:
-                self.verified = True
-            else:
-                err = err.decode()
-                self.results["message"] = err
-
+            subprocess.check_call(cmd, shell=True)
         except subprocess.CalledProcessError as e:
+            print(e.stderr)
             raise e
-
-        return
 
     def _parse_report(self, report):
         with open(report, "rb") as f:
@@ -177,44 +187,39 @@ def checkout(branch, new=True):
 ### Recipe handling
 def handle_recipe(recipe, opts):
     if not opts.disable_verification:
-        recipe.verify()
-        if not recipe.verified:
-            cmd = ["/usr/local/bin/autopkg", "update-trust-info", recipe.path]
-            cmd = " ".join(cmd)
-            if DEBUG:
-                print("Running " + str(cmd))
-
-            p = subprocess.Popen(
-                cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True
+        recipe.verify_trust_info()
+        if recipe.verified is False:
+            recipe.update_trust_info()
+    if recipe.verified in (True, None):
+        recipe.run()
+        if recipe.results["imported"]:
+            checkout(recipe.branch)
+            for imported in recipe.results["imported"]:
+                git_run(["add", f"'pkgs/{ imported['pkg_repo_path'] }'"])
+                git_run(["add", f"'pkgsinfo/{ imported['pkginfo_path'] }'"])
+            git_run(
+                [
+                    "commit",
+                    "-m",
+                    f"'Updated { recipe.name } to { recipe.updated_version }'",
+                ]
             )
-            (output, err) = p.communicate()
-            failures[recipe.name] = recipe.results["message"]
-    recipe.run()
-
-    if recipe.results["imported"]:
-        checkout(recipe.branch)
-        for imported in recipe.results["imported"]:
-            git_run(["add", f"'pkgs/{ imported['pkg_repo_path'] }'"])
-            git_run(["add", f"'pkgsinfo/{ imported['pkginfo_path'] }'"])
-
-        git_run(
-            ["commit", "-m", f"'Updated { recipe.name } to { recipe.updated_version }'"]
-        )
-        git_run(["push", "--set-upstream", "origin", recipe.branch])
-
-    return recipe.results
+            git_run(["push", "--set-upstream", "origin", recipe.branch])
+    return recipe
 
 
-def parse_recipes(file_path):
+def parse_recipes(recipes):
     recipe_list = []
-    ext = os.path.splitext(file_path)[1]
-
     ## Added this section so that we can run individual recipes
-    if ext == ".munki":
-        recipe_list.append(file_path + ".recipe")
-    elif ext == ".recipe":
-        recipe_list.append(file_path)
+    if isinstance(recipes, list):
+        for recipe in recipes:
+            ext = os.path.splitext(recipe)[1]
+            if ext != ".recipe":
+                recipe_list.append(recipe + ".recipe")
+            else:
+                recipe_list.append(recipe)
     else:
+        ext = os.path.splitext(recipes)[1]
         if ext == ".json":
             parser = json.load
         elif ext == ".plist":
@@ -223,7 +228,7 @@ def parse_recipes(file_path):
             print(f'Invalid run list extension "{ ext }" (expected plist or json)')
             sys.exit(1)
 
-        with open(file_path, "rb") as f:
+        with open(recipes, "rb") as f:
             recipe_list = parser(f)
 
     return map(Recipe, recipe_list)
@@ -236,9 +241,9 @@ def import_icons():
     result = subprocess.check_call(
         "/usr/local/munki/iconimporter munki_repo", shell=True
     )
-    git_run("add icons/")
-    git_run('commit -m "Added new icons"')
-    git_run(f"push --set-upstream origin { branch_name }")
+    git_run(["add", "icons/"])
+    git_run(["commit", "-m", "Added new icons"])
+    git_run(["push", "--set-upstream", "origin", f"{branch_name}"])
 
 
 def slack_alert(recipe, opts):
@@ -250,23 +255,22 @@ def slack_alert(recipe, opts):
         print("Skipping slack notification - webhook is missing!")
         return
 
-    if recipe.error:
-        if recipe.verified == False:
-            task_title = f"{ recipe.name } failed trust verification"
-            task_description = recipe.results["message"]
+    if not recipe.verified:
+        task_title = f"{ recipe.name } failed trust verification"
+        task_description = recipe.results["message"]
+    elif recipe.error:
+        task_title = f"Failed to import { recipe.name }"
+        if not recipe.results["failed"]:
+            task_description = "Unknown error"
         else:
-            task_title = f"Failed to import { recipe.name }"
-            if not recipe.results["failed"]:
-                task_description = "Unknown error"
-            else:
-                task_description = ("Error: {} \n" "Traceback: {} \n").format(
-                    recipe.results["failed"][0]["message"],
-                    recipe.results["failed"][0]["traceback"],
-                )
+            task_description = ("Error: {} \n" "Traceback: {} \n").format(
+                recipe.results["failed"][0]["message"],
+                recipe.results["failed"][0]["traceback"],
+            )
 
-                if "No releases found for repo" in task_description:
-                    # Just no updates
-                    return
+            if "No releases found for repo" in task_description:
+                # Just no updates
+                return
     elif recipe.updated:
         task_title = "Imported %s %s" % (recipe.name, str(recipe.updated_version))
         task_description = (
@@ -287,7 +291,7 @@ def slack_alert(recipe, opts):
                         "username": "Autopkg",
                         "as_user": True,
                         "title": task_title,
-                        "color": "good" if not recipe.error else "error",
+                        "color": "warning" if not recipe.verified else "good" if not recipe.error else "danger",
                         "text": task_description,
                         "mrkdwn_in": ["text"],
                     }
@@ -315,10 +319,16 @@ def main():
         default=MUNKI_REPO,
     )
     parser.add_option(
-        "-d", "--debug", action="store_true", help="Disables sending Slack alerts and adds more verbosity to output."
+        "-d",
+        "--debug",
+        action="store_true",
+        help="Disables sending Slack alerts and adds more verbosity to output.",
     )
     parser.add_option(
-        "-v", "--disable_verification", action="store_true", help="Disables recipe verification."
+        "-v",
+        "--disable_verification",
+        action="store_true",
+        help="Disables recipe verification.",
     )
     parser.add_option(
         "-i",
@@ -332,29 +342,33 @@ def main():
     global DEBUG
     DEBUG = bool(opts.debug)
 
-    no_updates = []
+    failures = []
 
     recipes = RECIPE_TO_RUN if RECIPE_TO_RUN else opts.list if opts.list else None
     if recipes is None:
-            print("Recipe --list or RECIPE_TO_RUN not provided!")
-            sys.exit(1)
-
-    for recipe in parse_recipes(recipes):
-            result = handle_recipe(recipe, opts)
-            slack_alert(recipe, opts)
+        print("Recipe --list or RECIPE_TO_RUN not provided!")
+        sys.exit(1)
+    recipes = parse_recipes(recipes)
+    for recipe in recipes:
+        handle_recipe(recipe, opts)
+        slack_alert(recipe, opts)
+        if not opts.disable_verification:
+            if not recipe.verified:
+                failures.append(recipe)
+    if not opts.disable_verification:
+        if failures:
+            title_file=open("pull_request_title","a+")
+            title_file.write("fix: Update trust for")
+            body_file=open("pull_request_body","a+")
+            for recipe in failures:
+                title_file.write(" " + recipe.name)
+                body_file.write(recipe.results["message"] + "\n")
+            title_file.close()
+            body_file.close()
 
     if opts.icons:
         import_icons()
 
-    if failures:
-        title_file=open("pull_request_title","a+")
-        title_file.write("fix: Update trust for")
-        body_file=open("pull_request_body","a+")
-        for recipe, body in failures.items():
-            title_file.write(" " + recipe)
-            body_file.write(body + "\n")
-        title_file.close()
-        body_file.close()
 
 if __name__ == "__main__":
     main()
