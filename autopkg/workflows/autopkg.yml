@@ -1,6 +1,7 @@
 name: Autopkg run
 
 on:
+  workflow_dispatch:
   watch:
     types: [started]
   schedule:
