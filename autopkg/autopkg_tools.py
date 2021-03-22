@@ -211,7 +211,7 @@ def handle_recipe(recipe, opts):
 def parse_recipes(recipes):
     recipe_list = []
     ## Added this section so that we can run individual recipes
-    if isinstance(recipes, list):
+    if RECIPE_TO_RUN:
         for recipe in recipes:
             ext = os.path.splitext(recipe)[1]
             if ext != ".recipe":
@@ -344,7 +344,7 @@ def main():
 
     failures = []
 
-    recipes = RECIPE_TO_RUN if RECIPE_TO_RUN else opts.list if opts.list else None
+    recipes = RECIPE_TO_RUN.split(", ") if RECIPE_TO_RUN else opts.list if opts.list else None
     if recipes is None:
         print("Recipe --list or RECIPE_TO_RUN not provided!")
         sys.exit(1)
