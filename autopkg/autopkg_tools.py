@@ -357,14 +357,12 @@ def main():
                 failures.append(recipe)
     if not opts.disable_verification:
         if failures:
-            title_file=open("pull_request_title","a+")
-            title_file.write("fix: Update trust for")
-            body_file=open("pull_request_body","a+")
-            for recipe in failures:
-                title_file.write(" " + recipe.name)
-                body_file.write(recipe.results["message"] + "\n")
-            title_file.close()
-            body_file.close()
+            title = " ".join([f"{recipe.name}" for recipe in failures])
+            lines = [f"{recipe.results['message']}\n" for recipe in failures]
+            with open("pull_request_title", "a+") as title_file:
+                title_file.write(f"fix: Update trust for {title}")
+            with open("pull_request_body", "a+") as body_file:
+                body_file.writelines(lines)
 
     if opts.icons:
         import_icons()
