@@ -5,6 +5,11 @@ on:
     types: [started]
   schedule:
     - cron: 00 14 * * 1-5
+  workflow_dispatch: # manually triggered
+    inputs:
+      recipe:
+        description: Recipe to Run (Optional)
+        required: false
 
 jobs:
   AutoPkg:
@@ -65,3 +70,23 @@ jobs:
     - name: Run AutoPkg
       run: |
         python3 autopkg_tools.py -l recipe_list.json
+        if [ -f pull_request_title ]; then
+        echo "TITLE=$(cat pull_request_title)" >> $GITHUB_ENV
+        echo "BODY<<EOF" >> $GITHUB_ENV
+        cat pull_request_body >> $GITHUB_ENV
+        echo "EOF" >> $GITHUB_ENV
+        fi
+      env:
+        RECIPE: ${{ github.event.inputs.recipe }}
+
+    - name: Create Pull Request
+      if: env.TITLE
+      uses: peter-evans/create-pull-request@09b9ac155b0d5ad7d8d157ed32158c1b73689109
+      with:
+        title: ${{ env.TITLE }}
+        body: ${{ env.BODY }}
+        branch: fix_trust_info
+        base: main
+        delete-branch: true
+        commit-message: ${{ env.TITLE }}
+        author: runner <runner@githubactions.local>
