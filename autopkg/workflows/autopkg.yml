@@ -8,7 +8,7 @@ on:
   workflow_dispatch: # manually triggered
     inputs:
       recipe:
-        description: Recipe to Run (Optional)
+        description: Recipe to Run (optional)
         required: false
 
 jobs:
@@ -28,17 +28,13 @@ jobs:
 
     - name: Install Munki
       run: |
-        curl -L https://github.com/munki/munki/releases/download/v5.2.1/munkitools-5.2.1.4260.pkg --output /tmp/munkitools.pkg
+        curl -L https://github.com/munki/munki/releases/download/v5.2.3/munkitools-5.2.3.4295.pkg --output /tmp/munkitools.pkg
         sudo installer -pkg /tmp/munkitools.pkg -target /
 
     - name: Install AutoPkg
       run: |
-        curl -L https://github.com/autopkg/autopkg/releases/download/v2.2/autopkg-2.2.pkg --output /tmp/autopkg.pkg
+        curl -L https://github.com/autopkg/autopkg/releases/download/v2.3.1/autopkg-2.3.1.pkg --output /tmp/autopkg.pkg
         sudo installer -pkg /tmp/autopkg.pkg -target /
-
-    - name: Lint recipes
-      run: |
-        plutil -lint overrides/*.recipe
 
     - name: Checkout your Munki LFS repo
       uses: actions/checkout@28c7f3d2b5162b5ddd3dfd9a45aa55eaf396478b
@@ -49,7 +45,7 @@ jobs:
         ref: refs/heads/master
         path: munki_repo
 
-    - name: Configure AutoPkg and git
+    - name: Configure AutoPkg and Git
       run: |
         defaults write com.github.autopkg RECIPE_OVERRIDE_DIRS "$(pwd)"/overrides/
         defaults write com.github.autopkg RECIPE_REPO_DIR "$(pwd)"/repos/
@@ -78,15 +74,21 @@ jobs:
         fi
       env:
         RECIPE: ${{ github.event.inputs.recipe }}
+        SLACK_WEBHOOK_TOKEN: ${{ secrets.autopkg_slack_token }}
 
-    - name: Create Pull Request
+    - name: Create Trust Info pull request
       if: env.TITLE
-      uses: peter-evans/create-pull-request@09b9ac155b0d5ad7d8d157ed32158c1b73689109
-      with:
-        title: ${{ env.TITLE }}
-        body: ${{ env.BODY }}
-        branch: fix_trust_info
-        base: main
-        delete-branch: true
-        commit-message: ${{ env.TITLE }}
-        author: runner <runner@githubactions.local>
+      run: |
+        export BRANCH_NAME=trust-info-`date +'%Y-%m-%d'`
+        git checkout -b $BRANCH_NAME
+        git add overrides/
+        git commit -m "${{ env.TITLE }}"
+        git push --set-upstream origin $BRANCH_NAME
+        jq -n --arg title "${{ env.TITLE }}" \
+              --arg body "$BODY" \
+              --arg head "$BRANCH_NAME" \
+           '{title: $title, body: $body, head: $head, "base": "${{ github.ref }}"}' | curl -s --request POST \
+           --url https://api.github.com/repos/${{ github.repository }}/pulls \
+           --header 'authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' \
+           --header 'content-type: application/json' \
+           -d@-
