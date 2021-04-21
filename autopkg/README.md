@@ -7,7 +7,7 @@ We've supplied an example override for Firefox.
 The different workflows run on a staggered schedule to avoid merge conflicts. AutoPkg can also be run on-demand by starring your repo.
 
 
-* `autopkg.yml` - Checks out the latest version of your autopkg overrides, installs munki and autopkg, then clones all the upstream recipe repos.   We forked Facebook's `autopkg_tools.py` script, which iterates over a list of recipes, and successful builds are pushed into a separate Git LFS repo. The build results are posted to a Slack channel so we can fix any recipe trust issues with a pull request. This also runs hjuutilainen's VirusTotalAnalyzer post-processor.
+* `autopkg.yml` - Checks out the latest version of your autopkg overrides, installs munki and autopkg, then clones all the upstream recipe repos. We forked Facebook's `autopkg_tools.py` script, which iterates over a list of recipes, and successful builds are pushed into a separate Git LFS repo. The build results are posted to a Slack channel so we can fix any recipe trust issues with a pull request. This also runs hjuutilainen's VirusTotalAnalyzer post-processor.
 
 * `repoclean.yml` - Pares your Munki repo down to the two newest versions of each package.
 
