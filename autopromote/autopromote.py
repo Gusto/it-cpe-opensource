@@ -253,7 +253,7 @@ def promote_pkg(current_plist, path):
     logger.info(f"Considering package {fullname}")
 
     # If the name and name-version are in the deny list AND name is not in the allow list
-    if (name in denylist or name + "-" + version in denylist) and (allowlist and name not in allowlist):
+    if (name in denylist or name + "-" + version in denylist) or (allowlist and name not in allowlist):
 
         # There is a hit, confirm it's not a name hit on a name-version entry
         for denyitem in denylist:
