@@ -252,7 +252,7 @@ def promote_pkg(current_plist, path):
 
     logger.info(f"Considering package {fullname}")
 
-    if name in denylist or (allowlist and name not in allowlist):
+    if name in denylist or name + "-" + version in denylist or (allowlist and name not in allowlist):
         logger.warn(f"Skipping {fullname}: excluded by allowlist/denylist")
         return promoted, result
 
