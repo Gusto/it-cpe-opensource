@@ -252,9 +252,19 @@ def promote_pkg(current_plist, path):
 
     logger.info(f"Considering package {fullname}")
 
-    if name in denylist or name + "-" + version in denylist or (allowlist and name not in allowlist):
-        logger.warn(f"Skipping {fullname}: excluded by allowlist/denylist")
-        return promoted, result
+    # If the name and name-version are in the deny list AND name is not in the allow list
+    if (name in denylist or name + "-" + version in denylist) and (allowlist and name not in allowlist):
+
+        # There is a hit, confirm it's not a name hit on a name-version entry
+        for denyitem in denylist:
+            # If the name is an exacty match and it's not in the allow list
+            if name == denyitem and (allowlist and name not in allowlist):
+                logger.warn(f"Skipping {fullname}: excluded by allowlist/denylist")
+                return promoted, result
+            # If the name-version is an exact match
+            elif name + "-" + version == denyitem:
+                logger.warn(f"Skipping {fullname}-{version}: excluded by denylist")
+                return promoted, result
 
     if (
         CONFIG["enforce_force_install_time"]
