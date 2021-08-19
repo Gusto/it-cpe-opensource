@@ -25,8 +25,7 @@ from pathlib import Path
 from optparse import OptionParser
 from datetime import datetime
 
-
-DEBUG = False
+DEBUG = os.environ.get("DEBUG", False)
 SLACK_WEBHOOK = os.environ.get("SLACK_WEBHOOK_TOKEN", None)
 MUNKI_REPO = os.path.join(os.getenv("GITHUB_WORKSPACE", "/tmp/"), "munki_repo")
 OVERRIDES_DIR = os.path.relpath("overrides/")
@@ -355,7 +354,7 @@ def main():
     (opts, _) = parser.parse_args()
 
     global DEBUG
-    DEBUG = bool(opts.debug)
+    DEBUG = bool(DEBUG or opts.debug)
 
     failures = []
 

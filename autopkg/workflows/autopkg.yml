@@ -10,6 +10,10 @@ on:
       recipe:
         description: Recipe to Run (optional)
         required: false
+      debug:
+        description: Run with debug output
+        required: false
+        default: false
 
 jobs:
   AutoPkg:
