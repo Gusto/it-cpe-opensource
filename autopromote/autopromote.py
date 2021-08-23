@@ -22,6 +22,7 @@ from collections import OrderedDict
 
 CONFIG_FILE = "/usr/local/munki/autopromote.json"
 PKGINFOS_PATHS = []
+DEBUG = bool(os.environ.get("DEBUG"))
 
 # Because things get easier if the catalogs are ordered - we don't always need to check "next"
 # in the catalog definition while considering a package for promotion.
@@ -95,6 +96,7 @@ def load_logger(logfile):
     """Returns logger object pointing to stdout or a file, as configured"""
 
     logger = logging.getLogger("autopromote")
+    logger.setLevel(logging.DEBUG if DEBUG else logging.INFO)
     logger.setLevel(logging.DEBUG)
     formatter = logging.Formatter(
         "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
