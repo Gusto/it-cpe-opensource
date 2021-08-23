@@ -62,18 +62,11 @@ def load_deny_and_allow_lists(config):
     def load(*lists):
         for config_item in lists:
             if isinstance(config_item, list):
-                config_item = Dict([k, {}] for k in as_defined)
+                config_item = Dict([k, None] for k in as_defined)
 
-            for name, values in config_item.items():
-                values = {} if values is None else values
-                assert isinstance(
-                    values, dict
-                ), f"{name} in allow/deny list must have a definition dictionary"
-
-                values["version"] = re.compile(
-                    ".*"
-                    if values.get("version") in [None, "all"]
-                    else values["version"],
+            for name, version in config_item.items():
+                version = re.compile(
+                    ".*" if version in [None, "all"] else version,
                     re.IGNORECASE,
                 )
                 config_item[name] = values
