@@ -65,12 +65,12 @@ def load_deny_and_allow_lists(config):
             if isinstance(config_item, list):
                 config_item = Dict([k, None] for k in as_defined)
 
-            for name, version in config_item.items():
+            for name, version in config_item.copy().items():
                 version = re.compile(
                     ".*" if version in [None, "all"] else version,
                     re.IGNORECASE,
                 )
-                config_item[name] = values
+                config_item[name] = version
 
             yield config_item
 
