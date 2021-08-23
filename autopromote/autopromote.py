@@ -10,8 +10,8 @@ import json
 import arrow
 import logging
 import datetime
+import plistlib
 import subprocess
-import plistlib as Plist
 from slacker import Slacker
 from dotenv import load_dotenv
 from xml.parsers.expat import ExpatError
@@ -138,8 +138,9 @@ def safe_read_pkg(pkginfo):
 
     logger.info(f"parsing {pkginfo}")
     try:
-        plist = Plist.readPlist(pkginfo)
-    except (ExpatError, Plist.InvalidFileException) as e:
+        with open(pkginfo, "rb") as f:
+            plist = plistlib.load(f)
+    except (ExpatError, plistlib.InvalidFileException) as e:
         # This is raised if a plist cannot be parsed (generally because its not a plist, but some clutter eg DS_Store)
         logger.warn(f"Failed to parse {pkginfo} because: {repr(e)}")
         plist = None
@@ -393,7 +394,8 @@ def promote_pkgs(pkginfos):
         if promoted:
             promotions[result["fullname"]] = result
 
-        Plist.writePlist(result["plist"], pkginfo)
+        with open(pkginfo, "wb") as f:
+            plistlib.dump(result["plist"], f)
 
     return promotions
 
