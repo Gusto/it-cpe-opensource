@@ -254,7 +254,7 @@ def get_channel_multiplier(plist):
 
 
 def permitted(name, version):
-    match = lambda lst: lst.get(name) and lst[name]["version"].match(version)
+    match = lambda lst: lst.get(name) and lst[name].match(version)
     allowed = match(CONFIG["allowlist"])
     denied = match(CONFIG["denylist"])
 
