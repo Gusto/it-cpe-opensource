@@ -96,8 +96,8 @@ def load_logger(logfile):
     """Returns logger object pointing to stdout or a file, as configured"""
 
     logger = logging.getLogger("autopromote")
-    logger.setLevel(logging.DEBUG if DEBUG else logging.INFO)
-    logger.setLevel(logging.DEBUG)
+    level = logging.DEBUG if DEBUG else logging.INFO
+
     formatter = logging.Formatter(
         "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     )
@@ -109,6 +109,7 @@ def load_logger(logfile):
 
     handler.setFormatter(formatter)
     logger.addHandler(handler)
+    logger.setLevel(level)
     return logger
 
 
@@ -142,7 +143,7 @@ def safe_read_pkg(pkginfo):
             plist = plistlib.load(f)
     except (ExpatError, plistlib.InvalidFileException) as e:
         # This is raised if a plist cannot be parsed (generally because its not a plist, but some clutter eg DS_Store)
-        logger.warn(f"Failed to parse {pkginfo} because: {repr(e)}")
+        logger.warning(f"Failed to parse {pkginfo} because: {repr(e)}")
         plist = None
     except Exception as e:
         logger.error(f"Error parsing {pkginfo}")
@@ -190,7 +191,7 @@ def get_previous_pkg(current):
             f"Determined that previous version of {current['name']} {current['version']} is {last['name']} {last['version']}"
         )
     else:
-        logger.warn(f"found no previous packages for {current['name']}")
+        logger.warning(f"found no previous packages for {current['name']}")
 
     return last
 
@@ -265,12 +266,12 @@ def permitted(name, version):
         raise f"{name} is in both allow and deny lists!"
 
     if not allowed and CONFIG["allowlist"].get(name):
-        logger.warn(
+        logger.warning(
             f"Skipping {name}-{version}: {name} is in allowlist but version {version} not matched"
         )
         return False
     elif denied:
-        logger.warn(f"Skipping {name}-{version}: in denylist")
+        logger.warning(f"Skipping {name}-{version}: in denylist")
         return False
 
     return True
@@ -283,9 +284,6 @@ def promote_pkg(current_plist, path):
 
     Returns a boolean promoted and a dict results
     """
-
-    denylist = CONFIG["denylist"]
-    allowlist = CONFIG["allowlist"]
 
     name = current_plist["name"]
     version = current_plist["version"]
@@ -385,17 +383,17 @@ def promote_pkgs(pkginfos):
     Returns a list of results from promote_pkg.
     """
 
-    denylist = CONFIG["denylist"]
-    allowlist = CONFIG["allowlist"]
     promotions = {}
 
-    for plist, pkginfo in pkginfos:
-        promoted, result = promote_pkg(plist, pkginfo)
+    for plist, path in pkginfos:
+        promoted, result = promote_pkg(plist, path)
         if promoted:
             promotions[result["fullname"]] = result
 
-        with open(pkginfo, "wb") as f:
+        with open(path, "wb") as f:
             plistlib.dump(result["plist"], f)
+
+        logging.debug(f"wrote {result['fullname']} to {path}")
 
     return promotions
 
