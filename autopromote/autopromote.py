@@ -58,6 +58,34 @@ def order_catalogs(catalogs):
     return od, keys
 
 
+def load_deny_and_allow_lists(config):
+    def load(*lists):
+        for config_item in lists:
+            if isinstance(config_item, list):
+                config_item = Dict([k, {}] for k in as_defined)
+
+            for name, values in config_item.items():
+                values = {} if values is None else values
+                assert isinstance(
+                    values, dict
+                ), f"{name} in allow/deny list must have a definition dictionary"
+
+                values["version"] = re.compile(
+                    ".*"
+                    if values.get("version") in [None, "all"]
+                    else values["version"],
+                    re.IGNORECASE,
+                )
+                config_item[name] = values
+
+            yield config_item
+
+    config["denylist"], config["allowlist"] = tuple(
+        l for l in load(config["denylist"], config["allowlist"])
+    )
+    return config
+
+
 def load_config():
     """Reads autopromote.json from hardcoded path CONFIG_FILE"""
 
@@ -65,6 +93,7 @@ def load_config():
         config = json.load(f)
 
     config["catalogs"], config["catalog_order"] = order_catalogs(config["catalogs"])
+    config = load_deny_and_allow_lists(config)
     return config
 
 
@@ -230,6 +259,26 @@ def get_channel_multiplier(plist):
     return float(multiplier)
 
 
+def permitted(name, version):
+    match = lambda lst: lst.get(name) and lst[name]["version"].match(version)
+    allowed = match(CONFIG["allowlist"])
+    denied = match(CONFIG["denylist"])
+
+    if allowed and denied:
+        raise f"{name} is in both allow and deny lists!"
+
+    if not allowed and CONFIG["allowlist"].get(name):
+        logger.warn(
+            f"Skipping {name}-{version}: {name} is in allowlist but version {version} not matched"
+        )
+        return False
+    elif denied:
+        logger.warn(f"Skipping {name}-{version}: in denylist")
+        return False
+
+    return True
+
+
 def promote_pkg(current_plist, path):
     """
     Given a pkginfo plist, parse its catalogs, apply a new catalog (promotion)
@@ -252,11 +301,7 @@ def promote_pkg(current_plist, path):
 
     logger.info(f"Considering package {fullname}")
 
-    if name in denylist or (allowlist and name not in allowlist):
-        logger.warn(f"Skipping {fullname}: excluded by denylist or not in allowlist")
-        return promoted, result
-    elif name + "-" + version in denylist:
-        logger.warn(f"Skipping {fullname}-{version}: excluded by denylist")
+    if not permitted(name, version):
         return promoted, result
 
     if (
