@@ -10,6 +10,7 @@
 # This product includes software developed by
 # ZenPayroll, Inc., dba Gusto (https://www.gusto.com/).
 #
+unified_mode true
 
 resource_name :cpe_activedirectory
 provides :cpe_activedirectory, :os => 'darwin'
