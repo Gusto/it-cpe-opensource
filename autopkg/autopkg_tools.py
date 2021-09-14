@@ -180,8 +180,8 @@ def current_branch():
 
 
 def checkout(branch, new=True):
-    if current_branch() != "master" and branch != "master":
-        checkout("master", new=False)
+    if current_branch() != "main" and branch != "main":
+        checkout("main", new=False)
 
     gitcmd = ["checkout"]
     if new:
