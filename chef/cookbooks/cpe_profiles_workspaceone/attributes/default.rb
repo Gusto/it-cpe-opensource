@@ -15,9 +15,16 @@
 # Cookbook Name:: cpe_profiles_workspaceone
 # Attributes:: default
 
-default['cpe_profiles_workspaceone'] = {}
-default['cpe_profiles_workspaceone']['prefix'] = 'gusto'
-default['cpe_profiles_workspaceone']['lambda_config'] = {
-  'url': nil,
-  'key': nil
+default["cpe_profiles_workspaceone"] = {}
+default["cpe_profiles_workspaceone"]["prefix"] = nil
+default["cpe_profiles_workspaceone"]["remote_profiles"] = {
+  "user": [],
+  "device": [],
 }
+default["cpe_profiles_workspaceone"]["forced_profiles"] = []
+default["cpe_profiles_workspaceone"]["lambda_config"] = {
+  "url" => nil,
+  "key" => nil,
+  "use_hubcli" => false
+}
+default["cpe_profiles_workspaceone"]["__cleanup"] = []
