@@ -10,7 +10,7 @@ Autopromote should be run daily, and operates on a promotion schedule of days. A
 
 #### Setup
 
-0. `mkdir .venv && virtualenv .venv && source .venv/bin/active` (py 2.7)
+0. `mkdir .venv && virtualenv .venv && source .venv/bin/activate` (py 2.7)
 1. `pip install -r requirements.txt`
 2. `python autopromote.py` (or cron to this effect)
 
