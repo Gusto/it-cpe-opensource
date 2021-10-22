@@ -24,8 +24,13 @@
 			"force_install_days": 45
 		}
 	},
-	"denylist": [],
-	"allowlist": [],
+	"denylist": {
+		"Zoom": null,
+		"BlueJeans": "5.4.2"
+	},
+	"allowlist": {
+		"Teleport": "8.*"
+	},
 	"remove_old_catalogs": true,
 	"munki_repo": "munki_repo",
 	"fields_to_copy": [

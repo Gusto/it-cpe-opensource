@@ -4,13 +4,14 @@
 #
 
 import os
+import re
 import sys
 import json
 import arrow
 import logging
 import datetime
+import plistlib
 import subprocess
-import plistlib as Plist
 from slacker import Slacker
 from dotenv import load_dotenv
 from xml.parsers.expat import ExpatError
@@ -21,6 +22,7 @@ from collections import OrderedDict
 
 CONFIG_FILE = "/usr/local/munki/autopromote.json"
 PKGINFOS_PATHS = []
+DEBUG = bool(os.environ.get("DEBUG"))
 
 # Because things get easier if the catalogs are ordered - we don't always need to check "next"
 # in the catalog definition while considering a package for promotion.
@@ -58,6 +60,27 @@ def order_catalogs(catalogs):
     return od, keys
 
 
+def load_deny_and_allow_lists(config):
+    def load(*lists):
+        for config_item in lists:
+            if isinstance(config_item, list):
+                config_item = {k: None for k in config_item}
+
+            for name, version in config_item.copy().items():
+                version = re.compile(
+                    ".*" if version in [None, "all"] else version,
+                    re.IGNORECASE,
+                )
+                config_item[name] = version
+
+            yield config_item
+
+    config["denylist"], config["allowlist"] = tuple(
+        l for l in load(config["denylist"], config["allowlist"])
+    )
+    return config
+
+
 def load_config():
     """Reads autopromote.json from hardcoded path CONFIG_FILE"""
 
@@ -65,6 +88,7 @@ def load_config():
         config = json.load(f)
 
     config["catalogs"], config["catalog_order"] = order_catalogs(config["catalogs"])
+    config = load_deny_and_allow_lists(config)
     return config
 
 
@@ -72,7 +96,8 @@ def load_logger(logfile):
     """Returns logger object pointing to stdout or a file, as configured"""
 
     logger = logging.getLogger("autopromote")
-    logger.setLevel(logging.DEBUG)
+    level = logging.DEBUG if DEBUG else logging.INFO
+
     formatter = logging.Formatter(
         "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     )
@@ -84,6 +109,7 @@ def load_logger(logfile):
 
     handler.setFormatter(formatter)
     logger.addHandler(handler)
+    logger.setLevel(level)
     return logger
 
 
@@ -113,10 +139,11 @@ def safe_read_pkg(pkginfo):
 
     logger.info(f"parsing {pkginfo}")
     try:
-        plist = Plist.readPlist(pkginfo)
-    except (ExpatError, Plist.InvalidFileException) as e:
+        with open(pkginfo, "rb") as f:
+            plist = plistlib.load(f)
+    except (ExpatError, plistlib.InvalidFileException) as e:
         # This is raised if a plist cannot be parsed (generally because its not a plist, but some clutter eg DS_Store)
-        logger.warn(f"Failed to parse {pkginfo} because: {repr(e)}")
+        logger.warning(f"Failed to parse {pkginfo} because: {repr(e)}")
         plist = None
     except Exception as e:
         logger.error(f"Error parsing {pkginfo}")
@@ -164,7 +191,7 @@ def get_previous_pkg(current):
             f"Determined that previous version of {current['name']} {current['version']} is {last['name']} {last['version']}"
         )
     else:
-        logger.warn(f"found no previous packages for {current['name']}")
+        logger.warning(f"found no previous packages for {current['name']}")
 
     return last
 
@@ -230,6 +257,26 @@ def get_channel_multiplier(plist):
     return float(multiplier)
 
 
+def permitted(name, version):
+    match = lambda lst: lst.get(name) and lst[name].match(version)
+    allowed = match(CONFIG["allowlist"])
+    denied = match(CONFIG["denylist"])
+
+    if allowed and denied:
+        raise f"{name} is in both allow and deny lists!"
+
+    if not allowed and CONFIG["allowlist"].get(name):
+        logger.warning(
+            f"Skipping {name}-{version}: {name} is in allowlist but version {version} not matched"
+        )
+        return False
+    elif denied:
+        logger.warning(f"Skipping {name}-{version}: in denylist")
+        return False
+
+    return True
+
+
 def promote_pkg(current_plist, path):
     """
     Given a pkginfo plist, parse its catalogs, apply a new catalog (promotion)
@@ -237,9 +284,6 @@ def promote_pkg(current_plist, path):
 
     Returns a boolean promoted and a dict results
     """
-
-    denylist = CONFIG["denylist"]
-    allowlist = CONFIG["allowlist"]
 
     name = current_plist["name"]
     version = current_plist["version"]
@@ -252,11 +296,7 @@ def promote_pkg(current_plist, path):
 
     logger.info(f"Considering package {fullname}")
 
-    if name in denylist or (allowlist and name not in allowlist):
-        logger.warn(f"Skipping {fullname}: excluded by denylist or not in allowlist")
-        return promoted, result
-    elif name + "-" + version in denylist:
-        logger.warn(f"Skipping {fullname}-{version}: excluded by denylist")
+    if not permitted(name, version):
         return promoted, result
 
     if (
@@ -343,16 +383,17 @@ def promote_pkgs(pkginfos):
     Returns a list of results from promote_pkg.
     """
 
-    denylist = CONFIG["denylist"]
-    allowlist = CONFIG["allowlist"]
     promotions = {}
 
-    for plist, pkginfo in pkginfos:
-        promoted, result = promote_pkg(plist, pkginfo)
+    for plist, path in pkginfos:
+        promoted, result = promote_pkg(plist, path)
         if promoted:
             promotions[result["fullname"]] = result
 
-        Plist.writePlist(result["plist"], pkginfo)
+        with open(path, "wb") as f:
+            plistlib.dump(result["plist"], f)
+
+        logging.debug(f"wrote {result['fullname']} to {path}")
 
     return promotions
 
