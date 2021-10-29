@@ -20,7 +20,7 @@ from logging.handlers import RotatingFileHandler
 from logging import StreamHandler
 from collections import OrderedDict
 
-CONFIG_FILE = "/usr/local/munki/autopromote.json"
+CONFIG_FILE = os.getenv("CONFIG_FILE", "/usr/local/munki/autopromote.json")
 PKGINFOS_PATHS = []
 DEBUG = bool(os.environ.get("DEBUG"))
 
