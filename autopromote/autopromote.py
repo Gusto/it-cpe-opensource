@@ -432,6 +432,23 @@ def notify_slack(promotions, error):
     )
 
 
+def output_results(promotions, error):
+    """
+    Given a list of results from promote_pkgs, write a file to disk 
+    """
+
+    file_path = CONFIG.get("output_results_path", "results.plist")
+
+    with open(file_path, "wb") as f:
+        if error:
+            plistlib.dump(error, f)
+        else:
+            plistlib.dump([
+                {"fullname": result['fullname'], "from": result['from'], "to": result['to']}
+                for pkg, result in promotions.items()
+            ], f)
+
+
 def main():
     logger.info("\n========================================\n")
     repo = os.path.join(CONFIG["munki_repo"], "pkgsinfo")
@@ -467,6 +484,8 @@ def main():
     finally:
         if CONFIG["notify_slack"]:
             notify_slack(promotions, error)
+        if CONFIG["output_results"]:
+            output_results(promotions, error)
         logging.shutdown()
 
 
