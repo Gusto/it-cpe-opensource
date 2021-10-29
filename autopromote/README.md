@@ -10,7 +10,7 @@ Autopromote should be run daily, and operates on a promotion schedule of days. A
 
 ### Setup
 
-0. `mkdir .venv && virtualenv .venv && source .venv/bin/active` (py 2.7)
+0. `mkdir .venv && virtualenv .venv && source .venv/bin/activate` (py 2.7)
 1. `pip install -r requirements.txt`
 2. `python3 autopromote.py` (or cron to this effect)
 
@@ -83,18 +83,18 @@ You may add a package to a channel by adding a channel key to the pkginfo metada
 
 ```xml
 <key>_metadata</key>
-	<dict>
-	   <key>channel</key>
-          <string>slow</string>
-	</dict>
+<dict>
+    <key>channel</key>
+    <string>slow</string>
+</dict>
 ```
 
 If you're using [AutoPkg](https://github.com/autopkg/autopkg) you can configure this in your recipe override, so all versions of a package enter the same channel. Place the channel info in the `Input` section of your recipe override:
 
 ```xml
 <key>metadata_additions</key>
-		<dict>
-		   <key>channel</key>
-	          <string>slow</string>
-		</dict>
+<dict>
+    <key>channel</key>
+    <string>slow</string>
+</dict>
 ```
