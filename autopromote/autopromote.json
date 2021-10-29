@@ -33,6 +33,7 @@
 	},
 	"remove_old_catalogs": true,
 	"munki_repo": "munki_repo",
+	"run_makecatalogs": true,
 	"fields_to_copy": [
 		"postinstall_script",
 		"postuninstall_script",

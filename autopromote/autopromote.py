@@ -454,11 +454,12 @@ def main():
         # Let's do the promoting!
         promotions = promote_pkgs(PKGINFOS_PATHS)
 
-        logger.debug("Calling makecatalogs...")
-        subprocess.call(
-            ["/usr/local/munki/makecatalogs", CONFIG["munki_repo"]],
-            stdout=open(os.devnull, "w"),
-        )
+        if(CONFIG.get("run_makecatalogs", True)):
+            logger.debug("Calling makecatalogs...")
+            subprocess.call(
+                ["/usr/local/munki/makecatalogs", CONFIG["munki_repo"]],
+                stdout=open(os.devnull, "w"),
+            )
     except Exception as e:
         logger.error(e)
         error = e
