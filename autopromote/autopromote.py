@@ -319,7 +319,7 @@ def promote_pkg(current_plist, path):
         )
         return promoted, result
 
-    last_promoted = plist["_metadata"].get("last_promoted")
+    last_promoted = plist.get("_metadata", {}).get("last_promoted")
     if last_promoted is None:
         logger.debug(f"Package {fullname} has no last_promoted value!")
 
