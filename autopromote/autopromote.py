@@ -444,10 +444,7 @@ def output_results(promotions, error):
         if error:
             plistlib.dump(error, f)
         else:
-            plistlib.dump([
-                {"fullname": result['fullname'], "from": result['from'], "to": result['to']}
-                for pkg, result in promotions.items()
-            ], f)
+            plistlib.dump(promotions, f)
 
 
 def main():
