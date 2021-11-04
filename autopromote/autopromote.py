@@ -360,6 +360,7 @@ def promote_pkg(current_plist, path):
 
     plist["catalogs"].append(next_catalog)
     promoted = True
+    result["pkginfo"] = path
     result["from"] = latest_catalog
     result["to"] = next_catalog
     plist["_metadata"]["last_promoted"] = arrow.now().datetime
