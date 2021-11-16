@@ -10,7 +10,7 @@
 # ZenPayroll, Inc., dba Gusto (http://www.gusto.com/).
 #
 
-return unless node.macos?
+return unless macos?
 
 # Call the custom resource to handle all of your work
 cpe_notifications 'Apple notification settings' do

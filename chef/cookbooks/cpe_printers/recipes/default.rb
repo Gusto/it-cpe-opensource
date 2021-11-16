@@ -10,7 +10,7 @@
 # ZenPayroll, Inc., dba Gusto (http://www.gusto.com/).
 #
 
-return unless node.macos?
+return unless macos?
 
 # Install printers
 cpe_printers "Configure #{node['organization']} printers" do

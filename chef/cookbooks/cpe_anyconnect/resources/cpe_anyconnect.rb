@@ -27,9 +27,9 @@ action_class do
   end
 
   def root_dir
-    if node.windows?
+    if windows?
       WINDOWS_DIR
-    elsif node.macos?
+    elsif macos?
       MACOS_DIR
     else
       raise "Unsupported OS"
@@ -37,9 +37,9 @@ action_class do
   end
 
   def server_profile_dir
-    if node.windows?
+    if windows?
       subd = "Profile"
-    elsif node.macos?
+    elsif macos?
       subd = "profile"
     end
 

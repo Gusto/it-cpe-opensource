@@ -11,6 +11,6 @@
 # ZenPayroll, Inc., dba Gusto (https://www.gusto.com/).
 #
 
-return unless node.macos?
+return unless macos?
 
 cpe_activedirectory 'Apply cpe_activedirectory'
