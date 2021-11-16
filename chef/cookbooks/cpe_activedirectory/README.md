@@ -130,4 +130,3 @@ node.default['cpe_activedirectory']['unbind'] = true
 Dependencies
 ----------
 * [uber_helpers cookbook](https://github.com/uber/cpe-chef-cookbooks)
-* [cpe_utils cookbook](https://github.com/facebook/IT-CPE)
