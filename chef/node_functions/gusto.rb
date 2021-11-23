@@ -76,10 +76,10 @@ class Chef
     end
 
     def encrypted?
-      if node.macos?
+      if macos?
         status = Mixlib::ShellOut.new('/usr/bin/fdesetup isactive')
         status.run_command.stdout.strip.to_s == 'true'
-      elsif node.windows?
+      elsif windows?
         status = powershell_out(
           "Get-BitLockerVolume -MountPoint 'C:' | foreach { $_.VolumeStatus }"
         )
@@ -90,12 +90,12 @@ class Chef
     end
 
     def firewall_enabled?
-      if node.macos?
+      if macos?
         cmd = Mixlib::ShellOut.new(
           '/usr/libexec/ApplicationFirewall/socketfilterfw --getglobalstate'
         ).run_command.stdout
         cmd.match?('enabled') ? true : false
-      elsif node.windows?
+      elsif windows?
         cmd = Mixlib::ShellOut.new(
           'sc query MpsSvc | FIND "STATE"'
         ).run_command.stdout
@@ -208,9 +208,9 @@ class Chef
     end
 
     def manufacturer
-      if node.macos?
+      if macos?
         'Apple'
-      elsif node.windows?
+      elsif windows?
         cmd = Mixlib::ShellOut.new('powershell.exe (Get-CimInstance -ClassName Win32_ComputerSystem).Manufacturer')
         cmd.run_command
         cmd.error!

@@ -44,7 +44,7 @@
 #   at DateTime.parse('Jan 19 2038 03:14:07')
 # end
 
-return unless node.macos?
+return unless macos?
 
 cpe_yo 'Configure Yo scheduler' do
   action :configure

@@ -105,7 +105,7 @@ action_class do
 end
 
 action :configure do
-  return unless node.macos?
+  return unless macos?
   return unless node['cpe_textexpander']['configure']
   return if ['_mbsetupuser', 'root'].include? node.console_user
   return unless ::Dir.exists?(settings_dir)

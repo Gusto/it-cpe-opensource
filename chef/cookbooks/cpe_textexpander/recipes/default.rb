@@ -11,7 +11,7 @@
 #
 
 # Always gate your recipe to the appropriate OSes!
-return unless node.macos?
+return unless macos?
 
 cpe_textexpander 'Configure textExpander' do
   only_if { node['cpe_textexpander']['configure'] }

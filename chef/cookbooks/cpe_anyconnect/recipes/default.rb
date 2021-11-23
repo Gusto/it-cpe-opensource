@@ -17,5 +17,5 @@ end
 
 cpe_anyconnect 'Manage Cisco AnyConnect shortcut shim' do
   action :install_shortcut_shim
-  only_if { node.macos? }
+  only_if { macos? }
 end

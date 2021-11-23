@@ -14,6 +14,6 @@
 # LICENSE file in the root directory of this source tree.
 #
 
-return unless node.macos?
+return unless macos?
 
 cpe_hot_corners 'Apply Hot Corner enforcement'

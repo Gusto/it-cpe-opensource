@@ -15,7 +15,7 @@
 # Cookbook Name:: cpe_profiles_workspaceone
 # Recipe:: default
 
-return unless node.macos?
+return unless macos?
 
 cpe_profiles_workspaceone 'Managing all MDM configuration profiles via lambda'
 
