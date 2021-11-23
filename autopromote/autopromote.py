@@ -20,7 +20,7 @@ from logging.handlers import RotatingFileHandler
 from logging import StreamHandler
 from collections import OrderedDict
 
-CONFIG_FILE = "/usr/local/munki/autopromote.json"
+CONFIG_FILE = os.getenv("CONFIG_FILE", "/usr/local/munki/autopromote.json")
 PKGINFOS_PATHS = []
 DEBUG = bool(os.environ.get("DEBUG"))
 
@@ -360,6 +360,7 @@ def promote_pkg(current_plist, path):
 
     plist["catalogs"].append(next_catalog)
     promoted = True
+    result["pkginfo"] = path
     result["from"] = latest_catalog
     result["to"] = next_catalog
     plist["_metadata"]["last_promoted"] = arrow.now().datetime
@@ -432,6 +433,20 @@ def notify_slack(promotions, error):
     )
 
 
+def output_results(promotions, error):
+    """
+    Given a list of results from promote_pkgs, write a file to disk 
+    """
+
+    file_path = CONFIG.get("output_results_path", "results.plist")
+
+    with open(file_path, "wb") as f:
+        if error:
+            plistlib.dump(error, f)
+        else:
+            plistlib.dump(promotions, f)
+
+
 def main():
     logger.info("\n========================================\n")
     repo = os.path.join(CONFIG["munki_repo"], "pkgsinfo")
@@ -454,11 +469,12 @@ def main():
         # Let's do the promoting!
         promotions = promote_pkgs(PKGINFOS_PATHS)
 
-        logger.debug("Calling makecatalogs...")
-        subprocess.call(
-            ["/usr/local/munki/makecatalogs", CONFIG["munki_repo"]],
-            stdout=open(os.devnull, "w"),
-        )
+        if CONFIG.get("run_makecatalogs", True):
+            logger.debug("Calling makecatalogs...")
+            subprocess.call(
+                ["/usr/local/munki/makecatalogs", CONFIG["munki_repo"]],
+                stdout=open(os.devnull, "w"),
+            )
     except Exception as e:
         logger.error(e)
         error = e
@@ -466,6 +482,8 @@ def main():
     finally:
         if CONFIG["notify_slack"]:
             notify_slack(promotions, error)
+        if CONFIG["output_results"]:
+            output_results(promotions, error)
         logging.shutdown()
 
 

@@ -33,6 +33,7 @@
 	},
 	"remove_old_catalogs": true,
 	"munki_repo": "munki_repo",
+	"run_makecatalogs": true,
 	"fields_to_copy": [
 		"postinstall_script",
 		"postuninstall_script",
@@ -53,6 +54,8 @@
 	"force_install_denylist": [],
 	"notify_slack": true,
 	"slack_channel": "#example-slack-channel",
+	"output_results": true,
+	"output_results_path": "results.plist",
 	"logging_level": "DEBUG",
 	"envfile": "~/.autopromote.env",
 	"patch_tuesday": null
