@@ -394,7 +394,7 @@ def promote_pkgs(pkginfos):
         with open(path, "wb") as f:
             plistlib.dump(result["plist"], f)
 
-        logging.debug(f"wrote {result['fullname']} to {path}")
+        logger.debug(f"wrote {result['fullname']} to {path}")
 
     return promotions
 
@@ -435,7 +435,7 @@ def notify_slack(promotions, error):
 
 def output_results(promotions, error):
     """
-    Given a list of results from promote_pkgs, write a file to disk 
+    Given a list of results from promote_pkgs, write a file to disk
     """
 
     file_path = CONFIG.get("output_results_path", "results.plist")
