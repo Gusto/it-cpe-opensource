@@ -18,7 +18,7 @@ default_action :run
 
 action :run do
   unbind if remediate? || unbind?
-  bind if bind?
+  bind if bind? && !unbind?
   configure if configure?
 end
 
@@ -178,9 +178,13 @@ action_class do # rubocop:disable Metrics/BlockLength
     hostname = node['cpe_activedirectory']['bind_ldap_check_hostname']
     port = node['cpe_activedirectory']['bind_ldap_check_port']
     port_timeout = node['cpe_activedirectory']['bind_ldap_check_port_timeout']
+    force_unbind = node['cpe_activedirectory']['force_unbind']
     unless node.port_open?(hostname, port, port_timeout)
-      Chef::Log.warn('cpe_activedirectory cannot communicate to domain - will not attempt to force unbind')
-      return
+      Chef::Log.warn('cpe_activedirectory cannot communicate to domain')
+      unless force_unbind
+        Chef::Log.warn('force unbinding not set - will not attempt to force unbind')
+        return
+      end
     end
 
     if node['cpe_activedirectory']['unbind_method'] == 'profile_resource'

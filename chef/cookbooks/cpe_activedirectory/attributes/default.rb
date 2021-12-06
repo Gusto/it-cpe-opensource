@@ -61,6 +61,7 @@ default['cpe_activedirectory'] = {
       'useuncpath' => 'Use Windows UNC path for home',
     },
   }.freeze,
+  'force_unbind' => false,
   'options' => {
     'administrative' => {
       'alldomains' => nil, # 'enable' or 'disable' allow authentication from any domain
