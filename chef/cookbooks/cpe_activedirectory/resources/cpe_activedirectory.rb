@@ -146,6 +146,7 @@ action_class do # rubocop:disable Metrics/BlockLength
     bind_options = node['cpe_activedirectory']['bind_options']
     node['cpe_activedirectory']['options'].each do |root_key, root_subkeys|
       next if root_subkeys.all?(NilClass)
+
       root_subkeys.compact.each do |key, value|
         cmd = "/usr/sbin/dsconfigad -#{key} #{shell_format(value)}"
         if node['cpe_activedirectory']['what_if_execution']
