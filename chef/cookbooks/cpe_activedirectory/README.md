@@ -63,6 +63,7 @@ Binding Options:
 * node['cpe_activedirectory']['bind_options']['ClientID']
 * node['cpe_activedirectory']['bind_options']['HostName']
 * node['cpe_activedirectory']['bind_options']['ADOrganizationalUnit']
+* node['cpe_activedirectory']['force_unbind']
 * node['cpe_activedirectory']['remediate']
 * node['cpe_activedirectory']['unbind']
 * node['cpe_activedirectory']['unbind_method'] (defaults to profile_resource)
