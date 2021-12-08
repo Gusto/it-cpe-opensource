@@ -20,9 +20,10 @@ jobs:
       with:
         fetch-depth: 1
         repository: replace_with_your_munki_repo
-        ref: refs/heads/master
+        # GitHub deploy key with read/write access to repo
+        ssh-key: ${{ secrets.CPE_MUNKI_LFS_DEPLOY_KEY }}
+        ref: refs/heads/main
         path: munki_repo
-        token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Disable makecatalogs
       run: |
@@ -32,7 +33,7 @@ jobs:
     - name: Configure autopromote
       run: |
         sudo cp autopromote.json /usr/local/munki/autopromote.json
-        echo "export SLACK_TOKEN='${{ secrets.SLACK_TOKEN }}'" >> ~/.autopromote.env
+        echo "export SLACK_TOKEN='${{ secrets.AUTOPROMOTE_SLACK_TOKEN }}'" >> ~/.autopromote.env
         sudo install -m 644 /dev/null /var/log/autopromote.log
         sudo ln -s munki_repo/ /usr/local/munki_repo
 
@@ -46,7 +47,7 @@ jobs:
       run: |
         python3 autopromote/autopromote.py
       env:
-        SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
+        SLACK_TOKEN: ${{ secrets.AUTOPROMOTE_SLACK_TOKEN }}
 
     - name: Push changes
       run: |

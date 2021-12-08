@@ -44,7 +44,8 @@ jobs:
       uses: actions/checkout@28c7f3d2b5162b5ddd3dfd9a45aa55eaf396478b
       with:
         repository: replace_with_your_munki_repo
-        token: ${{ secrets.GITHUB_TOKEN }}
+        # GitHub deploy key with read/write access to repo
+        ssh-key: ${{ secrets.CPE_MUNKI_LFS_DEPLOY_KEY }}
         fetch-depth: 1
         ref: refs/heads/main
         path: munki_repo
@@ -78,7 +79,7 @@ jobs:
         fi
       env:
         RECIPE: ${{ github.event.inputs.recipe }}
-        SLACK_WEBHOOK_TOKEN: ${{ secrets.autopkg_slack_token }}
+        SLACK_WEBHOOK_TOKEN: ${{ secrets.SLACK_WEBHOOK_URL }}
 
     - name: Create Trust Info pull request
       if: env.TITLE
