@@ -25,7 +25,8 @@ jobs:
         repository: replace_with_your_munki_repo
         ref: refs/heads/master
         path: munki_repo
-        token: ${{ secrets.GITHUB_TOKEN }}
+        # GitHub deploy key with read/write access to repo
+        ssh-key: ${{ secrets.CPE_MUNKI_LFS_DEPLOY_KEY }}
 
     - name: Run Munki repoclean
       run: |

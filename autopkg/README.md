@@ -7,7 +7,7 @@ We've supplied an example override for Firefox.
 The different workflows run on a staggered schedule to avoid merge conflicts. AutoPkg can also be run on-demand by starring your repo.
 
 
-* `autopkg.yml` - Checks out the latest version of your autopkg overrides, installs munki and autopkg, then clones all the upstream recipe repos. We forked Facebook's `autopkg_tools.py` script, which iterates over a list of recipes, and successful builds are pushed into a separate Git LFS repo. The build results are posted to a Slack channel so we can fix any recipe trust issues with a pull request. This also runs hjuutilainen's VirusTotalAnalyzer post-processor.
+* `autopkg.yml` - Checks out the latest version of your autopkg overrides, installs Munki and autopkg, then clones all the upstream recipe repos. We forked Facebook's `autopkg_tools.py` script, which iterates over a list of recipes, and successful builds are pushed into a separate Git LFS repo. The build results are posted to a Slack channel so we can fix any recipe trust issues with a pull request. This also runs hjuutilainen's VirusTotalAnalyzer post-processor.
 
 * `repoclean.yml` - Pares your Munki repo down to the two newest versions of each package.
 
@@ -30,8 +30,9 @@ Because of how AutoPkg handles relative paths, the directory paths on your machi
 1. Add the recipe filename to `recipe_list.json`
 1. Add the repo to `repo_list.txt`
 1. Create another empty Github repo with Actions enabled. This will be your munki repo.
+1. In your munki repo, create a [GitHub deploy key](https://docs.github.com/en/developers/overview/managing-deploy-keys#setup-2) with read/write access to repo.
 1. Copy the name of your Munki git repo to the `Checkout your munki LFS repo` step in `autopkg.yml`
-1. Add Github Actions secrets for `SLACK_WEBHOOK_URL`, `SLACK_TOKEN`,and `GITHUB_TOKEN`.
+1. Add the private key for your Munki repo deploy key as a Github Actions secret named `CPE_MUNKI_LFS_DEPLOY_KEY` in your AutoPkg repo. Optionally, if using Slack, add Github Actions secrets for `SLACK_WEBHOOK_URL` (a URL to post AutoPkg results in Slack) and `AUTOPROMOTE_SLACK_TOKEN`.
 
 
 ## Credits
