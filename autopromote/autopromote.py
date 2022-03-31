@@ -369,7 +369,7 @@ def promote_pkg(current_plist, path):
             arrow.now().shift(days=+get_force_install_days(next_catalog)).datetime
         )
 
-        if CONFIG["enforce_force_install_time"] and CONFIG.get("force_install_time"):
+        if CONFIG.get("enforce_force_install_time") and CONFIG.get("force_install_time"):
             plist["force_install_after_date"] = get_force_install_time(plist)
 
     logger.info(f"Promoted {fullname} from {result['from']} to {result['to']}")
@@ -480,9 +480,9 @@ def main():
         error = e
         raise e
     finally:
-        if CONFIG["notify_slack"]:
+        if CONFIG.get("notify_slack"):
             notify_slack(promotions, error)
-        if CONFIG["output_results"]:
+        if CONFIG.get("output_results"):
             output_results(promotions, error)
         logging.shutdown()
 
