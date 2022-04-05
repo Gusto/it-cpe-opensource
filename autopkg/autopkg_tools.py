@@ -26,10 +26,12 @@ from optparse import OptionParser
 from datetime import datetime
 
 DEBUG = os.environ.get("DEBUG", False)
-SLACK_WEBHOOK = os.environ.get("SLACK_WEBHOOK_TOKEN", None)
+METADATA_CACHE_PATH = os.environ.get("METADATA_CACHE_PATH", "/tmp/autopkg_metadata.json")
 MUNKI_REPO = os.path.join(os.getenv("GITHUB_WORKSPACE", "/tmp/"), "munki_repo")
 OVERRIDES_DIR = os.path.relpath("overrides/")
 RECIPE_TO_RUN = os.environ.get("RECIPE", None)
+SLACK_WEBHOOK_URL = os.environ.get("SLACK_WEBHOOK_TOKEN", None)
+
 
 class Recipe(object):
     def __init__(self, path):
@@ -142,6 +144,13 @@ class Recipe(object):
                     "--report-plist",
                     report,
                 ]
+
+                if opts.xattr:
+                    cmd = cmd + [
+                        "--post",
+                        "com.github.williamtheaker.CacheRecipeMetadata/CacheRecipeMetadata",
+                    ]
+
                 cmd = " ".join(cmd)
                 if DEBUG:
                     print("Running " + str(cmd))
@@ -169,7 +178,9 @@ def git_run(cmd):
         hide_cmd_output = False
 
     try:
-        result = subprocess.run(" ".join(cmd), shell=True, cwd=MUNKI_REPO, capture_output=hide_cmd_output)
+        result = subprocess.run(
+            " ".join(cmd), shell=True, cwd=MUNKI_REPO, capture_output=hide_cmd_output
+        )
     except subprocess.CalledProcessError as e:
         print(e.stderr)
         raise e
@@ -252,12 +263,36 @@ def parse_recipes(recipes):
 def import_icons():
     branch_name = "icon_import_{}".format(datetime.now().strftime("%Y-%m-%d"))
     checkout(branch_name)
-    result = subprocess.check_call(
-        "/usr/local/munki/iconimporter munki_repo", shell=True
-    )
+    subprocess.check_call("/usr/local/munki/iconimporter munki_repo", shell=True)
     git_run(["add", "icons/"])
     git_run(["commit", "-m", "Added new icons"])
     git_run(["push", "--set-upstream", "origin", f"{branch_name}"])
+
+
+## Metadata cache handling
+def load_cached_attributes():
+    # Load metadata cache file from disk
+    with open(METADATA_CACHE_PATH, "r") as cache_file:
+        cached_files = json.load(cache_file)
+    return cached_files
+
+
+def write_dummy_files(attributes_dict):
+    # Python has no native support for extended attributes on macOS, so we shellout to write attributes to dummy files
+    for i in attributes_dict:
+        # Write text to file since AutoPkg ignores 0 byte files
+        Path(attributes_dict[i]["pathname"]).write_text(
+            "This is a dummy file for managing extended attribute values."
+        )
+
+        subprocess.Popen(
+            f"xattr -w com.github.autopkg.etag '{ attributes_dict[i]['etag'] }' { attributes_dict[i]['pathname'] }",
+            shell=True,
+        )  # Write etag header
+        subprocess.Popen(
+            f"xattr -w com.github.autopkg.last-modified '{ attributes_dict[i]['last_modified'] }' { attributes_dict[i]['pathname'] }",
+            shell=True,
+        )  # Write last-modified header
 
 
 def slack_alert(recipe, opts):
@@ -265,8 +300,8 @@ def slack_alert(recipe, opts):
         print("Debug: skipping Slack notification - debug is enabled!")
         return
 
-    if SLACK_WEBHOOK is None:
-        print("Skipping slack notification - webhook is missing!")
+    if SLACK_WEBHOOK_URL is None:
+        print("Skipping Slack notification - webhook URL is missing!")
         return
 
     if not recipe.verified:
@@ -297,7 +332,7 @@ def slack_alert(recipe, opts):
         return
 
     response = requests.post(
-        SLACK_WEBHOOK,
+        SLACK_WEBHOOK_URL,
         data=json.dumps(
             {
                 "attachments": [
@@ -305,7 +340,11 @@ def slack_alert(recipe, opts):
                         "username": "Autopkg",
                         "as_user": True,
                         "title": task_title,
-                        "color": "warning" if not recipe.verified else "good" if not recipe.error else "danger",
+                        "color": "warning"
+                        if not recipe.verified
+                        else "good"
+                        if not recipe.error
+                        else "danger",
                         "text": task_description,
                         "mrkdwn_in": ["text"],
                     }
@@ -322,14 +361,14 @@ def slack_alert(recipe, opts):
 
 
 def main():
-    parser = OptionParser(description="Wrap AutoPkg with git support.")
+    parser = OptionParser(description="Wrap AutoPkg with Git support.")
     parser.add_option(
         "-l", "--list", help="Path to a plist or JSON list of recipe names."
     )
     parser.add_option(
         "-g",
         "--gitrepo",
-        help="Path to git repo. Defaults to MUNKI_REPO from Autopkg preferences.",
+        help="Path to Git repo. Defaults to MUNKI_REPO from Autopkg preferences.",
         default=MUNKI_REPO,
     )
     parser.add_option(
@@ -348,7 +387,13 @@ def main():
         "-i",
         "--icons",
         action="store_true",
-        help="Run iconimporter against git munki repo.",
+        help="Run iconimporter against Git Munki repo.",
+    )
+    parser.add_option(
+        "-x",
+        "--xattr",
+        action="store_true",
+        help="Load and write external extended attribute cache file.",
     )
 
     (opts, _) = parser.parse_args()
@@ -358,10 +403,15 @@ def main():
 
     failures = []
 
-    recipes = RECIPE_TO_RUN.split(", ") if RECIPE_TO_RUN else opts.list if opts.list else None
+    recipes = (
+        RECIPE_TO_RUN.split(", ") if RECIPE_TO_RUN else opts.list if opts.list else None
+    )
     if recipes is None:
         print("Recipe --list or RECIPE_TO_RUN not provided!")
         sys.exit(1)
+    if opts.xattr:
+        attributes_dict = load_cached_attributes()
+        write_dummy_files(attributes_dict)
     recipes = parse_recipes(recipes)
     for recipe in recipes:
         handle_recipe(recipe, opts)
