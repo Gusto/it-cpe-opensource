@@ -284,6 +284,10 @@ def write_dummy_files(attributes_dict):
         pathname = attributes_dict[i]["pathname"]
         etag = attributes_dict[i]["etag"]
         last_modified = attributes_dict[i]["last_modified"]
+        head, tail = os.path.split(pathname)
+
+        # Create cache directory if not already existing
+        Path(head).mkdir(parents=True, exist_ok=True)
 
         # Write text to file since AutoPkg ignores 0 byte files
         Path(pathname).write_text(
