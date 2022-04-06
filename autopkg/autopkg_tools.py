@@ -277,30 +277,24 @@ def load_cached_attributes():
     return cached_files
 
 
-def write_dummy_files(attributes_dict):
-    # Python has no native support for extended attributes on macOS, so we shellout to write attributes to dummy files
+def write_extended_attributes(attributes_dict):
+    # Python has no native support for extended attributes on macOS, so we shellout to write attributes
     for i in attributes_dict:
 
         pathname = attributes_dict[i]["pathname"]
         etag = attributes_dict[i]["etag"]
         last_modified = attributes_dict[i]["last_modified"]
-        head, tail = os.path.split(pathname)
 
-        # Create cache directory if not already existing
-        Path(head).mkdir(parents=True, exist_ok=True)
-
-        # Write text to file since AutoPkg ignores 0 byte files
-        Path(pathname).write_text(
-            "This is a dummy file for managing AutoPkg extended attribute values."
-        )
-
-        subprocess.Popen(
-            f"xattr -w com.github.autopkg.etag '{ etag }' { pathname }", shell=True
-        )  # Write etag header
-        subprocess.Popen(
-            f"xattr -w com.github.autopkg.last-modified '{ last_modified }' { pathname }",
-            shell=True,
-        )  # Write last-modified header
+        # Only write xattr with successful cache hit
+        if os.path.exists(pathname):
+            subprocess.Popen(
+                f"xattr -w com.github.autopkg.etag '{ etag }' { pathname }", shell=True
+            )  # Write etag header
+            subprocess.Popen(
+                f"xattr -w com.github.autopkg.last-modified '{ last_modified }' { pathname }",
+                shell=True,
+            )  # Write last-modified header
+            print(f"Wrote extended attributes to { pathname }.")
 
 
 def slack_alert(recipe, opts):
@@ -419,7 +413,7 @@ def main():
         sys.exit(1)
     if opts.xattr:
         attributes_dict = load_cached_attributes()
-        write_dummy_files(attributes_dict)
+        write_extended_attributes(attributes_dict)
     recipes = parse_recipes(recipes)
     for recipe in recipes:
         handle_recipe(recipe, opts)
