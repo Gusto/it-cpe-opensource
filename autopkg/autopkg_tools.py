@@ -122,7 +122,7 @@ class Recipe(object):
 
         return {"imported": imported_items, "failed": failed_items}
 
-    def run(self):
+    def run(self, opts):
         if self.verified == False:
             self.error = True
             self.results["failed"] = True
@@ -216,7 +216,7 @@ def handle_recipe(recipe, opts):
         if recipe.verified is False:
             recipe.update_trust_info()
     if recipe.verified in (True, None):
-        recipe.run()
+        recipe.run(opts)
         if recipe.results["imported"]:
             checkout(recipe.branch)
             for imported in recipe.results["imported"]:
