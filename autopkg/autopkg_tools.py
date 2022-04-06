@@ -145,11 +145,11 @@ class Recipe(object):
                     report,
                 ]
 
-                if opts.xattr:
-                    cmd = cmd + [
-                        "--post",
-                        "com.github.williamtheaker.CacheRecipeMetadata/CacheRecipeMetadata",
-                    ]
+                # if opts.xattr:
+                #     cmd = cmd + [
+                #         "--post",
+                #         "com.github.williamtheaker.CacheRecipeMetadata/CacheRecipeMetadata",
+                #     ]
 
                 cmd = " ".join(cmd)
                 if DEBUG:
@@ -280,17 +280,21 @@ def load_cached_attributes():
 def write_dummy_files(attributes_dict):
     # Python has no native support for extended attributes on macOS, so we shellout to write attributes to dummy files
     for i in attributes_dict:
+
+        pathname = attributes_dict[i]["pathname"]
+        etag = attributes_dict[i]["etag"]
+        last_modified = attributes_dict[i]["last_modified"]
+
         # Write text to file since AutoPkg ignores 0 byte files
-        Path(attributes_dict[i]["pathname"]).write_text(
-            "This is a dummy file for managing extended attribute values."
+        Path(pathname).write_text(
+            "This is a dummy file for managing AutoPkg extended attribute values."
         )
 
         subprocess.Popen(
-            f"xattr -w com.github.autopkg.etag '{ attributes_dict[i]['etag'] }' { attributes_dict[i]['pathname'] }",
-            shell=True,
+            f"xattr -w com.github.autopkg.etag '{ etag }' { pathname }", shell=True
         )  # Write etag header
         subprocess.Popen(
-            f"xattr -w com.github.autopkg.last-modified '{ attributes_dict[i]['last_modified'] }' { attributes_dict[i]['pathname'] }",
+            f"xattr -w com.github.autopkg.last-modified '{ last_modified }' { pathname }",
             shell=True,
         )  # Write last-modified header
 
