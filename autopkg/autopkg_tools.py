@@ -145,11 +145,11 @@ class Recipe(object):
                     report,
                 ]
 
-                # if opts.xattr:
-                #     cmd = cmd + [
-                #         "--post",
-                #         "com.github.williamtheaker.CacheRecipeMetadata/CacheRecipeMetadata",
-                #     ]
+                if opts.xattr:
+                    cmd = cmd + [
+                        "--post",
+                        "com.github.williamtheaker.autopkg.postprocessors/CacheRecipeMetadata",
+                    ]
 
                 cmd = " ".join(cmd)
                 if DEBUG:
