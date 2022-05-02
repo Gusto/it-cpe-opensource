@@ -281,20 +281,23 @@ def write_extended_attributes(attributes_dict):
     # Python has no native support for extended attributes on macOS, so we shellout to write attributes
     for i in attributes_dict:
 
-        pathname = attributes_dict[i]["pathname"]
-        etag = attributes_dict[i]["etag"]
-        last_modified = attributes_dict[i]["last_modified"]
+        try:
+            pathname = attributes_dict[i]["pathname"]
+            etag = attributes_dict[i]["etag"]
+            last_modified = attributes_dict[i]["last_modified"]
 
-        # Only write xattr with successful cache hit
-        if os.path.exists(pathname):
-            subprocess.Popen(
-                f"xattr -w com.github.autopkg.etag '{ etag }' { pathname }", shell=True
-            )  # Write etag header
-            subprocess.Popen(
-                f"xattr -w com.github.autopkg.last-modified '{ last_modified }' { pathname }",
-                shell=True,
-            )  # Write last-modified header
-            print(f"Wrote extended attributes to { pathname }.")
+            # Only write xattr with successful cache hit
+            if os.path.exists(pathname):
+                subprocess.Popen(
+                    f"xattr -w com.github.autopkg.etag '{ etag }' { pathname }", shell=True
+                )  # Write etag header
+                subprocess.Popen(
+                    f"xattr -w com.github.autopkg.last-modified '{ last_modified }' { pathname }",
+                    shell=True,
+                )  # Write last-modified header
+                print(f"Wrote extended attributes to { pathname }.")
+        except KeyError as e:
+            print(f"Ignoring {i} - Missing key {e}.")
 
 
 def slack_alert(recipe, opts):
