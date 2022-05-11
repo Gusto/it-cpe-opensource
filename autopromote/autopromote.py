@@ -12,7 +12,10 @@ import logging
 import datetime
 import plistlib
 import subprocess
-from slacker import Slacker
+import certifi
+from ssl import SSLContext, PROTOCOL_TLS_CLIENT
+from slack_sdk import WebClient
+from slack_sdk.errors import SlackApiError
 from dotenv import load_dotenv
 from xml.parsers.expat import ExpatError
 from packaging import version as semantic_version
@@ -401,13 +404,18 @@ def promote_pkgs(pkginfos):
 
 def notify_slack(promotions, error):
     """
-    Given a list of resuilts from promote_pkgs, send a slack alert with a summary
+    Given a list of results from promote_pkgs, send a slack alert with a summary
     """
 
+    # Generate our Slack WebClient
     token = os.environ.get("SLACK_TOKEN")
+    sslcert = SSLContext(PROTOCOL_TLS_CLIENT)
+    sslcert.load_verify_locations(certifi.where())
+    client = WebClient(token=token, ssl=sslcert)
     if not token:
         logger.error("No SLACK_TOKEN is in environment, skipping slack output")
         return
+    # Build out the Slack message attachment showing what was promoted
     attachments = {
         "fields": [
             {"title": pkg, "value": f"{result['from']} => {result['to']}"}
@@ -424,13 +432,20 @@ def notify_slack(promotions, error):
     }
     logger.debug(promotions)
     logger.debug(attachments)
-    Slacker(token).chat.post_message(
-        CONFIG.get("slack_channel", "#test-please-ignore"),
-        text="new autopromote.py run complete",
-        username="munki autopromoter",
-        icon_emoji=":munki:",
-        attachments=[attachments],
-    )
+    # Actually send the Slack message
+    try:
+        response = client.chat_postMessage(
+            channel=CONFIG.get("slack_channel", "#test-please-ignore"),
+            text="new autopromote.py run complete",
+            username="munki autopromoter",
+            icon_emoji=":munki:",
+            attachments=[attachments])
+        assert response["message"]["text"] == "new autopromote.py run complete"
+    except SlackApiError as e:
+        # You will get a SlackApiError if "ok" is False
+        assert e.response["ok"] is False
+        assert e.response["error"]  # str like 'invalid_auth', 'channel_not_found'
+        logger.error(f"Slack error: {e.response['error']}")
 
 
 def output_results(promotions, error):
