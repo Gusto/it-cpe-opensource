@@ -58,7 +58,19 @@ If found, any/all of the fields in this array are copied to the newly promoted p
  If set, all newly promoted pkginfos receive a fresh force_install_after_date matching a T+this value. This is the default, to configure for specific packages use the `catalogs` hash.
 
 #### patch_tuesday
- An integer, 0-6, which specified the weekday to force force install dates to. For instance, if the force install date is 7 days from now, which falls on a Friday (4), and patch_tuesday is set to Tuesday (1), the force install date will be shifted by 4 days, to 11 days from now, in order to fall on the next Tuesday. This allows admins to automatically create a weekly predictability in their patch cycle.
+An integer, 0-6, which specified the weekday to force force install dates to. For instance, if the force install date is 7 days from now, which falls on a Friday (4), and patch_tuesday is set to Tuesday (1), the force install date will be shifted by 4 days, to 11 days from now, in order to fall on the next Tuesday. This allows admins to automatically create a weekly predictability in their patch cycle.
+
+Uses [Python's weekday implementation](https://docs.python.org/3/library/datetime.html#datetime.date.weekday) for days of the week.
+
+| Integer Value | Day of the week |
+|     :---:     | ---             |
+|       0       | Monday          |
+|       1       | Tuesday         |
+|       2       | Wednesday       |
+|       3       | Thursday        |
+|       4       | Friday          |
+|       5       | Saturday        |
+|       6       | Sunday          |
 
 A patch_tuesday of `null` will preclude any shift of force install dates.
 
