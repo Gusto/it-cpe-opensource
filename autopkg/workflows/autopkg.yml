@@ -8,46 +8,58 @@ on:
   workflow_dispatch: # manually triggered
     inputs:
       recipe:
-        description: Recipe to Run (optional)
+        description: Optional recipe to run (e.g. Firefox.munki)
         required: false
       debug:
-        description: Run with debug output
-        required: false
-        default: false
+        description: Enable debug
+        required: true
+        default: 'True'
+        type: choice
+        options:
+        - 'False'
+        - 'True'
 
 jobs:
   AutoPkg:
     runs-on: macos-latest
     timeout-minutes: 90 # Keeps your builds from running too long
+    env:
+      AUTOPKG_SHA256: "b4e8f9e50b429d19658285aa9a93b6fbf6d11c49743f4ee0026011444ef6c8da"
+      AUTOPKG_URL: "https://github.com/autopkg/autopkg/releases/download/v2.4.1/autopkg-2.4.1.pkg"
+      MUNKI_SHA256: "ba52389db369dd123297bfdf30daf37baba44bf967144382363b3b08ab5fab90"
+      MUNKI_URL: "https://github.com/munki/munki/releases/download/v5.6.3/munkitools-5.6.3.4401.pkg"
     steps:
     - name: Checkout AutoPkg recipes
-      uses: actions/checkout@28c7f3d2b5162b5ddd3dfd9a45aa55eaf396478b # Pin SHA1 hash instead of version
+      uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b #v3.0.2 # Pin SHA1 hash instead of version
       with:
         fetch-depth: 1
 
-    - name: Install python dependencies
+    - name: Install Python dependencies
       run: |
         python3 -m pip install --upgrade pip
         pip3 install -r requirements.txt
 
     - name: Install Munki
       run: |
-        curl -L https://github.com/munki/munki/releases/download/v5.2.3/munkitools-5.2.3.4295.pkg --output /tmp/munkitools.pkg
+        curl -L ${{ env.MUNKI_URL }} --output /tmp/munkitools.pkg
+        echo "${{ env.MUNKI_SHA256 }} */tmp/munkitools.pkg" | shasum -c
+        if [[ $? != "0" ]]; then exit 1; fi
         sudo installer -pkg /tmp/munkitools.pkg -target /
 
     - name: Install AutoPkg
       run: |
-        curl -L https://github.com/autopkg/autopkg/releases/download/v2.3.1/autopkg-2.3.1.pkg --output /tmp/autopkg.pkg
+        curl -L ${{ env.AUTOPKG_URL }} --output /tmp/autopkg.pkg
+        echo "${{ env.AUTOPKG_SHA256 }} */tmp/autopkg.pkg" | shasum -c
+        if [[ $? != "0" ]]; then exit 1; fi
         sudo installer -pkg /tmp/autopkg.pkg -target /
 
     - name: Checkout your Munki LFS repo
-      uses: actions/checkout@28c7f3d2b5162b5ddd3dfd9a45aa55eaf396478b
+      uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b #v3.0.2
       with:
         repository: replace_with_your_munki_repo
         # GitHub deploy key with read/write access to repo
         ssh-key: ${{ secrets.CPE_MUNKI_LFS_DEPLOY_KEY }}
         fetch-depth: 1
-        ref: refs/heads/main
         path: munki_repo
 
     - name: Configure AutoPkg and Git
@@ -62,7 +74,7 @@ jobs:
 
     - name: Add AutoPkg repos
       run: |
-        for repo in $(cat repo_list.txt); do autopkg repo-add "$repo" && autopkg repo-update "$repo"; done
+        for repo in $(cat repo_list.txt); do autopkg repo-add "$repo"; done
 
     - name: Run makecatalogs
       run: |
