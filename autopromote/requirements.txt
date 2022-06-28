@@ -1,4 +1,4 @@
-arrow==0.12.1
+arrow==0.15.1
 backports.functools-lru-cache==1.5
 certifi==2018.1.18
 chardet==3.0.4
