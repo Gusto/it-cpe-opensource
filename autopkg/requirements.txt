@@ -1,10 +1,1 @@
-appdirs==1.4.3
-attrs==19.3.0
-black==19.3b0
-certifi==2019.9.11
-chardet==3.0.4
-Click==7.0
-idna==2.8
-requests==2.25.1
-toml==0.10.0
 urllib3==1.26.5
