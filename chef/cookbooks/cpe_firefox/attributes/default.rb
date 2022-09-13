@@ -1,4 +1,8 @@
-# Copyright (c) Gusto, Inc. and its affiliates.
+#
+# Cookbook:: cpe_firefox
+# Attributes:: default
+#
+# Copyright:: (c) 2021-present, Gusto, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,13 +15,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+#
 
-# Cookbook Name:: cpe_firefox
-# Attributes:: default
-
-default['cpe_firefox'] = {
-  'profile' => {},
-  'cfg_file_name' => 'cpe-firefox.cfg',
-  'configure' => false,
-  'ff_central_store' => '/Library/Application Support/Firefox Management',
+default["cpe_firefox"] = {
+  "profile" => {},
+  "configure" => false,
 }

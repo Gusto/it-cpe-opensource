@@ -1,4 +1,8 @@
-# Copyright (c) Gusto, Inc. and its affiliates.
+#
+# Cookbook:: cpe_firefox
+# Recipes:: default
+#
+# Copyright:: (c) 2021-present, Gusto, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,11 +15,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+#
 
-# Cookbook Name:: cpe_firefox
-# Recipes:: default
+return unless macos? || windows?
 
-
-return unless node.macos? || node.windows?
-
-cpe_firefox 'Apply Firefox profile'
+cpe_firefox "Apply Firefox profile"
