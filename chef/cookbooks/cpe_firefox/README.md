@@ -9,7 +9,7 @@ Attributes
 
 Usage
 -----
-The profile will manage the `org.mozilla.firefox` preference domain.
+For macOS, this creates a profile to manage the `org.mozilla.firefox` preference domain. On Windows, it creates a `policies.json` file in the Firefox installation directory.
 
 The profile's organization key defaults to `Gusto` unless `node['organization']` is
 configured in your company's custom init recipe. The profile will also use
