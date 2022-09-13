@@ -1,65 +1,90 @@
 #
-# Cookbook Name:: cpe_ublock
-# Resource:: cpe_ublock
+# Cookbook:: cpe_ublock
+# Resources:: cpe_ublock
 #
+# Copyright:: (c) 2020-present, Gusto, Inc.
 #
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
-# Gusto CPE Chef Cookbooks
-# Copyright 2020 ZenPayroll, Inc., dba Gusto
+# https://www.apache.org/licenses/LICENSE-2.0
 #
-# This product includes software developed by
-# ZenPayroll, Inc., dba Gusto (https://www.gusto.com/).
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 #
+require "json"
 
-# These attributes, if set to nil, _do not_ reflect the current value or value
-# which will be applied. All nil values are discarded and existing value for
-# that key will persist. It was likely applied by a DirectoryService.managed
-# profile.
-
-
-require 'json'
-
+provides :cpe_ublock
 resource_name :cpe_ublock
+unified_mode true
 default_action :run
 
-action :run do
-  prefs = node['cpe_ublock']['adminSettings'].compact
-  prefix = node['cpe_profiles']['prefix']
-  organization = node['organization'] || 'Gusto'
-  return if prefs.empty?
+# Enforce Ublock Settings
 
-  unless prefs["netWhitelist"].nil?
-    prefs["netWhitelist"] = prefs["netWhitelist"].join("\n")
-  end
+action_class do
+  def windows_config(ublock_prefs)
+    return unless windows?
 
-  prefs = {'adminSettings' => prefs.to_json}
+    ublock_prefs.each do |reg_key, reg_value|
+      # Configure Google Chrome. Microsoft Edge would be similar:
+      # MICROSOFT_EDGE_REGISTRY_KEY = 'HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Edge\3rdparty\Extensions\odfafepnkmbhccpbejgmiehpchacaeak\policy'
 
-  profile = {
-    'PayloadIdentifier' => "#{prefix}.ublock",
-    'PayloadRemovalDisallowed' => true,
-    'PayloadScope' => 'System',
-    'PayloadType' => 'Configuration',
-    'PayloadUUID' => 'B85D1054-286C-4122-8653-FA48B8751D54',
-    'PayloadOrganization' => organization,
-    'PayloadVersion' => 1,
-    'PayloadDisplayName' => 'uBlock Origin',
-    'PayloadContent' => [],
-  }
-
-  unless prefs.empty?
-    profile['PayloadContent'].push(
-      'PayloadType' => 'com.google.Chrome.extensions.cjpalhdlnbpafiamejdnhcphjbkeiagm',
-      'PayloadVersion' => 1,
-      'PayloadIdentifier' => "#{prefix}.ublock",
-      'PayloadUUID' => '04217FF8-3430-4618-AE3C-867DD07B89BF',
-      'PayloadEnabled' => true,
-      'PayloadDisplayName' => 'uBlock Origin',
-    )
-    prefs.each_key do |key|
-      next if prefs[key].nil?
-      profile['PayloadContent'][0][key] = prefs[key]
+      registry_key 'HKEY_LOCAL_MACHINE\Software\Policies\Google\Chrome\3rdparty\extensions\cjpalhdlnbpafiamejdnhcphjbkeiagm\policy' do
+        values [{
+          name: reg_key,
+          type: :string,
+          data:  Chef::JSONCompat.to_json(reg_value),
+          }]
+        recursive true
+        action :create
+      end
     end
   end
 
-  node.default['cpe_profiles']["#{prefix}.ublock"] = profile
+  def macos_config(ublock_prefs)
+    return unless macos?
+    prefix = node["cpe_profiles"]["prefix"]
+    organization = node["organization"] || "Gusto"
+    profile = {
+      "PayloadIdentifier" => "#{prefix}.ublock",
+      "PayloadRemovalDisallowed" => true,
+      "PayloadScope" => "System",
+      "PayloadType" => "Configuration",
+      "PayloadUUID" => "B85D1054-286C-4122-8653-FA48B8751D54",
+      "PayloadOrganization" => organization,
+      "PayloadVersion" => 1,
+      "PayloadDisplayName" => "uBlock Origin",
+      "PayloadContent" => [],
+    }
+
+    unless ublock_prefs.empty?
+      profile["PayloadContent"].push(
+        "PayloadType" => "com.google.Chrome.extensions.cjpalhdlnbpafiamejdnhcphjbkeiagm",
+        "PayloadVersion" => 1,
+        "PayloadIdentifier" => "#{prefix}.ublock",
+        "PayloadUUID" => "04217FF8-3430-4618-AE3C-867DD07B89BF",
+        "PayloadEnabled" => true,
+        "PayloadDisplayName" => "uBlock Origin",
+      )
+      ublock_prefs.each_key do |key|
+        next if ublock_prefs[key].nil?
+        profile["PayloadContent"][0][key] = ublock_prefs[key]
+      end
+    end
+
+    node.default["cpe_profiles"]["#{prefix}.ublock"] = profile
+  end
+end
+
+action :run do
+  ublock_prefs = node["cpe_ublock"].compact
+
+  return if ublock_prefs.empty? || ublock_prefs.nil?
+
+  macos_config(ublock_prefs) if macos?
+  windows_config(ublock_prefs) if windows?
 end

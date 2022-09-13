@@ -9,17 +9,15 @@ Attributes
 
 Usage
 -----
-For macOS, this creates a profile to manage the `org.mozilla.firefox` preference domain. On Windows, it creates a `policies.json` file in the Firefox installation directory.
+The profile will manage the `org.mozilla.firefox` preference domain.
 
 The profile's organization key defaults to `Gusto` unless `node['organization']` is
 configured in your company's custom init recipe. The profile will also use
 whichever prefix is set in node['cpe_profiles']['prefix'], which defaults to `com.facebook.chef`
 
-If you used a previous version of cpe_firefox to manage Firefox Autoconfig files, this cookbook also deletes those unsupported config files.
-
 ### Managing Extensions
 
-Mozilla maintains more robust documentation on [managing extensions](https://github.com/mozilla/policy-templates/blob/master/README.md#extensions), but the general idea is similar to Google Chrome. To manage an extension, add a hash/dictionary with the extension ID as the top level key. You can retrieve the extension ID by installing the extension and visiting <about:support>. (Un)Installation types are defined in `installation_mode`, with the values `allowed`,`blocked`,`force_installed`, and `normal_installed` (removable). Provide the installer XPI, optionally version-pinned, in `install_url`:
+Mozilla maintains more robust documentation on [managing extensions](https://github.com/mozilla/policy-templates/blob/master/README.md#extensions), but the general idea is similar to Google Chrome. To manage an extension, add a hash/dictionary with the extension ID as the top level key. You can retrieve the extension ID by viewing HTML source for the extension's addons.mozilla.org page and looking for `guid`, using Osquery to inspect the `identifier` column on the `firefox_addons` table, or by installing the extension and visiting <about:support>. (Un)Installation types are defined in `installation_mode`, with the values `allowed`,`blocked`,`force_installed`, and `normal_installed` (removable). Provide the installer XPI, optionally version-pinned, in `install_url`:
 
 ```
 ExtensionSettings' => {
