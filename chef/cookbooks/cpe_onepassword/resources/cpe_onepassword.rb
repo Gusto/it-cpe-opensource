@@ -71,33 +71,57 @@ action_class do
 
     enforced
   end
+
+  def create_dirs
+    create_dirs_mac if macos?
+    create_dirs_win if windows?
+  end
+
+  def create_dirs_mac
+    {
+      ::File.expand_path("../../../../..", settings_dir) => "700",
+      ::File.expand_path("../../../..", settings_dir) => "700",
+      ::File.expand_path("../../..", settings_dir) => "700",
+      ::File.expand_path("../..", settings_dir) => "755",
+      ::File.expand_path("..", settings_dir) => "755",
+      settings_dir => "700",
+    }.each do |dir, octal|
+      directory dir do
+        owner node.console_user
+        group "staff"
+        mode octal
+        not_if { config_dir_exist? }
+        only_if { node["cpe_onepassword"]["recursively_create_if_missing"] }
+        action :create
+      end
+    end
+  end
+
+  def create_dirs_win
+    [
+      ::File.expand_path("..", settings_dir),
+      settings_dir,
+    ].each do |dir|
+      directory dir do
+        owner "S-1-3-4" # universal security identifier for current owner
+        group "S-1-3-4"
+        not_if { config_dir_exist? }
+        only_if { node["cpe_onepassword"]["recursively_create_if_missing"] }
+        action :create
+      end
+    end
+  end
 end
 
 action :config do
   return unless node["cpe_onepassword"]["configure"]
 
-  {
-    ::File.expand_path("../../../../..", settings_dir) => "700",
-    ::File.expand_path("../../../..", settings_dir) => "700",
-    ::File.expand_path("../../..", settings_dir) => "700",
-    ::File.expand_path("../..", settings_dir) => "755",
-    ::File.expand_path("..", settings_dir) => "755",
-    settings_dir => "700",
-  }.each do |dir, octal|
-    directory dir do
-      owner node.console_user
-      group macos? ? "staff" : nil
-      mode macos? ? octal : nil
-      not_if { config_dir_exist? }
-      only_if { node["cpe_onepassword"]["recursively_create_if_missing"] }
-      action :create
-    end
-  end
+  create_dirs
 
   file file_path do
     content Chef::JSONCompat.to_json_pretty(settings)
-    owner node.console_user
-    group macos? ? "staff" : nil
+    owner macos? ? node.console_user : "S-1-3-4"
+    group macos? ? "staff" : "S-1-3-4"
     mode macos? ? "600" : nil
     only_if { config_dir_exist? }
     only_if { config_file_exist? || node["cpe_onepassword"]["recursively_create_if_missing"] || node["cpe_onepassword"]["create_if_missing"] }
