@@ -1,6 +1,6 @@
 cpe_onepassword Cookbook
 ========================
-Manage 1Password's JSON config using the CPE attributes API pattern on macOS and Windows.
+Manage 1Password 8 and later JSON config using the CPE attributes API pattern on macOS and Windows.
 
 Depends on [Facebook's cpe_helper's cookbook](https://github.com/facebook/IT-CPE/tree/main/itchef/cookbooks/cpe_helpers/libraries).
 
