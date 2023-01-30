@@ -69,9 +69,9 @@ slack-sdk==3.16.1 \
     --hash=sha256:701b66ee028614f94cc4771f21b2319c55686e786bd2888e7454e45b5f9e5299 \
     --hash=sha256:8eb8ba74f04b2246a1f506e1a5e9b30b4e0547daecdcbec63ac2bdd444fd305f
     # via -r autopromote/requirements.txt
-urllib3==1.26.6 \
-    --hash=sha256:39fb8672126159acb139a7718dd10806104dec1e2f0f6c88aab05d17df10c8d4 \
-    --hash=sha256:f57b4c16c62fa2760b7e3d97c35b255512fb6b59a259730f36ba32ce9f8e342f
+urllib3==1.26.14 \
+    --hash=sha256:076907bf8fd355cde77728471316625a4d2f7e713c125f51953bb5b3eecf4f72 \
+    --hash=sha256:75edcdc2f7d85b137124a6c3c9fc3933cdeaa12ecb9a6a959f22797a0feca7e1
     # via
     #   -r autopromote/requirements.txt
     #   requests
