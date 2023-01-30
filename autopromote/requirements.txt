@@ -65,9 +65,9 @@ six==1.11.0 \
     #   -r autopromote/requirements.txt
     #   packaging
     #   python-dateutil
-slack-sdk==3.16.1 \
-    --hash=sha256:701b66ee028614f94cc4771f21b2319c55686e786bd2888e7454e45b5f9e5299 \
-    --hash=sha256:8eb8ba74f04b2246a1f506e1a5e9b30b4e0547daecdcbec63ac2bdd444fd305f
+slack-sdk==3.19.5 \
+    --hash=sha256:0b52bb32a87c71f638b9eb47e228dffeebf89de5e762684ef848276f9f186c84 \
+    --hash=sha256:47fb4af596243fe6585a92f3034de21eb2104a55cc9fd59a92ef3af17cf9ddd8
     # via -r autopromote/requirements.txt
 urllib3==1.26.14 \
     --hash=sha256:076907bf8fd355cde77728471316625a4d2f7e713c125f51953bb5b3eecf4f72 \
