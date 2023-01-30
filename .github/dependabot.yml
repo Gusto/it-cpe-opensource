@@ -8,7 +8,7 @@ updates:
       day: "tuesday"
 
   - package-ecosystem: "github-actions"
-    directory: "/" # Don't change this, despite the path being .github/workflows
+    directory: "/autopkg/workflows"
     reviewers:
       - "Gusto/it-cpe" # Request review from CPE
     schedule:
