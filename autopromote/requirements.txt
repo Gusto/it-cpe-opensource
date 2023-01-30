@@ -50,9 +50,9 @@ python-dateutil==2.6.1 \
     # via
     #   -r autopromote/requirements.txt
     #   arrow
-python-dotenv==0.10.2 \
-    --hash=sha256:156f218846bd90e0d537915545cde4a987947c2cecc628b50f9955fdde72534a \
-    --hash=sha256:6640acd76e6cab84648e4fec16c9d19de6700971f9d91d045e7120622167bfda
+python-dotenv==0.21.1 \
+    --hash=sha256:1c93de8f636cde3ce377292818d0e440b6e45a82f215c3744979151fa8151c49 \
+    --hash=sha256:41e12e0318bebc859fcc4d97d4db8d20ad21721a6aa5047dd59f090391cb549a
     # via -r autopromote/requirements.txt
 requests==2.28.2 \
     --hash=sha256:64299f4909223da747622c030b781c0d7811e359c37124b4bd368fb8c6518baa \
