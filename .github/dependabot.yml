@@ -1,0 +1,16 @@
+version: 2
+updates:
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      # Check for updates to Python dependencies every Tuesday
+      interval: "weekly"
+      day: "tuesday"
+
+  - package-ecosystem: "github-actions"
+    directory: "/" # Don't change this, despite the path being .github/workflows
+    reviewers:
+      - "Gusto/it-cpe" # Request review from CPE
+    schedule:
+      # Check for updates to GitHub Actions on the first day of the month
+      interval: "monthly"
