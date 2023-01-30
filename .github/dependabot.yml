@@ -2,6 +2,7 @@ version: 2
 updates:
   - package-ecosystem: "pip"
     directory: "/"
+    open-pull-requests-limit: 10
     schedule:
       # Check for updates to Python dependencies every Tuesday
       interval: "weekly"
@@ -9,6 +10,7 @@ updates:
 
   - package-ecosystem: "github-actions"
     directory: "/autopkg/workflows"
+    open-pull-requests-limit: 10
     reviewers:
       - "Gusto/it-cpe" # Request review from CPE
     schedule:
