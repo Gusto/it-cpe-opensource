@@ -8,10 +8,6 @@ arrow==1.2.3 \
     --hash=sha256:3934b30ca1b9f292376d9db15b19446088d12ec58629bc3f0da28fd55fb633a1 \
     --hash=sha256:5a49ab92e3b7b71d96cd6bfcc4df14efefc9dfa96ea19045815914a6ab6b1fe2
     # via -r autopromote/requirements.txt
-backports-functools-lru-cache==1.6.4 \
-    --hash=sha256:d5ed2169378b67d3c545e5600d363a923b09c456dab1593914935a68ad478271 \
-    --hash=sha256:dbead04b9daa817909ec64e8d2855fb78feafe0b901d4568758e3a60559d8978
-    # via -r autopromote/requirements.txt
 certifi==2022.12.7 \
     --hash=sha256:35824b4c3a97115964b408844d64aa14db1cc518f6562e8d7261699d1350a9e3 \
     --hash=sha256:4ad3232f5e926d6718ec31cfc1fcadfde020920e278684144551c91769c7bc18
