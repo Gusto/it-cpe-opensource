@@ -3,6 +3,8 @@ updates:
   - package-ecosystem: "pip"
     directory: "/"
     open-pull-requests-limit: 20
+    reviewers:
+      - "Gusto/it-cpe" # Request review from CPE
     schedule:
       # Check for updates to Python dependencies every Tuesday
       interval: "weekly"
