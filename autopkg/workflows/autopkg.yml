@@ -30,7 +30,7 @@ jobs:
       MUNKI_URL: "https://github.com/munki/munki/releases/download/v5.6.3/munkitools-5.6.3.4401.pkg"
     steps:
     - name: Checkout AutoPkg recipes
-      uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 #v3.2.0 # Pin SHA1 hash instead of version
+      uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab #v3.2.0 # Pin SHA1 hash instead of version
       with:
         fetch-depth: 1
 
@@ -54,7 +54,7 @@ jobs:
         sudo installer -pkg /tmp/autopkg.pkg -target /
 
     - name: Checkout your Munki LFS repo
-      uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 #v3.5.0
+      uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab #v3.5.2
       with:
         repository: replace_with_your_munki_repo
         # GitHub deploy key with read/write access to repo
