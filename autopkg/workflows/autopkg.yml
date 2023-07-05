@@ -30,7 +30,7 @@ jobs:
       MUNKI_URL: "https://github.com/munki/munki/releases/download/v5.6.3/munkitools-5.6.3.4401.pkg"
     steps:
     - name: Checkout AutoPkg recipes
-      uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 #v3.2.0 # Pin SHA1 hash instead of version
+      uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 #v3.5.3 Pin SHA1 hash instead of version
       with:
         fetch-depth: 1
 
