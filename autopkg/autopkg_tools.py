@@ -31,6 +31,7 @@ MUNKI_REPO = os.path.join(os.getenv("GITHUB_WORKSPACE", "/tmp/"), "munki_repo")
 OVERRIDES_DIR = os.path.relpath("overrides/")
 RECIPE_TO_RUN = os.environ.get("RECIPE", None)
 
+
 class Recipe(object):
     def __init__(self, path):
         self.path = os.path.join(OVERRIDES_DIR, path)
@@ -72,8 +73,9 @@ class Recipe(object):
         return self.plist["Input"]["NAME"]
 
     def verify_trust_info(self):
-        cmd = ["/usr/local/bin/autopkg", "verify-trust-info", self.path, "-vvv"]
-        cmd = " ".join(cmd)
+        cmd = " ".join(
+            ["/usr/local/bin/autopkg", "verify-trust-info", self.path, "-vvv"]
+        )
 
         if DEBUG:
             print("Running " + str(cmd))
@@ -169,7 +171,9 @@ def git_run(cmd):
         hide_cmd_output = False
 
     try:
-        result = subprocess.run(" ".join(cmd), shell=True, cwd=MUNKI_REPO, capture_output=hide_cmd_output)
+        result = subprocess.run(
+            " ".join(cmd), shell=True, cwd=MUNKI_REPO, capture_output=hide_cmd_output
+        )
     except subprocess.CalledProcessError as e:
         print(e.stderr)
         raise e
@@ -305,7 +309,11 @@ def slack_alert(recipe, opts):
                         "username": "Autopkg",
                         "as_user": True,
                         "title": task_title,
-                        "color": "warning" if not recipe.verified else "good" if not recipe.error else "danger",
+                        "color": "warning"
+                        if not recipe.verified
+                        else "good"
+                        if not recipe.error
+                        else "danger",
                         "text": task_description,
                         "mrkdwn_in": ["text"],
                     }
@@ -358,7 +366,9 @@ def main():
 
     failures = []
 
-    recipes = RECIPE_TO_RUN.split(", ") if RECIPE_TO_RUN else opts.list if opts.list else None
+    recipes = (
+        RECIPE_TO_RUN.split(", ") if RECIPE_TO_RUN else opts.list if opts.list else None
+    )
     if recipes is None:
         print("Recipe --list or RECIPE_TO_RUN not provided!")
         sys.exit(1)
