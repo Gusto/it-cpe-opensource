@@ -49,7 +49,10 @@ class Recipe(object):
     def plist(self):
         if self._keys is None:
             with open(self.path, "rb") as f:
-                self._keys = plistlib.load(f)
+                if self.path.endswith(".yaml"):
+                    self._keys = yaml.load(f, Loader=yaml.FullLoader)
+                else:
+                    self._keys = plistlib.load(f)
 
         return self._keys
 
@@ -96,8 +99,7 @@ class Recipe(object):
         return self.verified
 
     def update_trust_info(self):
-        cmd = ["/usr/local/bin/autopkg", "update-trust-info", self.path]
-        cmd = " ".join(cmd)
+        cmd = " ".join(["/usr/local/bin/autopkg", "update-trust-info", self.path])
 
         if DEBUG:
             print("Running " + str(cmd))
