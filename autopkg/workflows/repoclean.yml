@@ -1,42 +1,69 @@
-name: Repoclean
+name: repoclean
 
 on:
   schedule:
-    - cron:  00 16 * * 3
+    - cron: 00 13 * * 3
+  workflow_dispatch:
 
 jobs:
   repoclean:
     runs-on: ubuntu-latest
     timeout-minutes: 15
-
+    env:
+      MUNKI_COMMIT: "4c4c46132c78ba8a18921023f21f68551cacc939"  # v6.1.0
+      PYTHON_VERSION: "3.9.13"  # Match Munki Python
     steps:
-    - name: Checkout munki code
-      uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9
-      with:
-        repository: munki/munki
-        fetch-depth: 1
-        ref: e2d88c009108b84613cfd88c4a0c5a008dc5df76
-        path: munki
+      - name: Cache Python ${{ env.PYTHON_VERSION }}
+        uses: actions/cache@88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8  # v3.3.1
+        with:
+          path: /opt/hostedtoolcache/Python/${{ env.PYTHON_VERSION }}
+          key: ${{ runner.os }}-python-cache-${{ env.PYTHON_VERSION }}
 
-    - name: Checkout your munki LFS repo
-      uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9
-      with:
-        fetch-depth: 1
-        repository: replace_with_your_munki_repo
-        ref: refs/heads/master
-        path: munki_repo
-        # GitHub deploy key with read/write access to repo
-        ssh-key: ${{ secrets.CPE_MUNKI_LFS_DEPLOY_KEY }}
+      - name: Install and setup Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@61a6322f88396a6271a6ee3565807d608ecaddd1  # v4.3.2
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
 
-    - name: Run Munki repoclean
-      run: |
-        yes | python3 munki/code/client/repoclean --keep 2 munki_repo
+      - name: Checkout your Munki LFS repo
+        uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9  # v3.5.3
+        with:
+          repository: replace_with_your_munki_repo
+          # GitHub deploy key with read/write access to repo
+          ssh-key: ${{ secrets.CPE_MUNKI_LFS_DEPLOY_KEY }}
+          ref: refs/heads/main
+          path: munki_repo
 
-    - name: Push changes
-      run: |
-        cd munki_repo/
-        git config --global user.name "runner"
-        git config --global user.email "runner@githubactions.local"
-        git checkout -b "repoclean-`date +'%Y-%m-%d'`"
-        git add -u pkgsinfo/ pkgs/
-        if git diff --exit-code; then git commit -m "`date +'%Y-%m-%d'` repoclean" && git push --set-upstream origin "repoclean-`date +'%Y-%m-%d'`"; else echo "Nothing to commit"; fi
+      - name: Cache Munki code
+        uses: actions/cache@88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8  # v3.3.1
+        id: munki-code-cache
+        with:
+          path: munki
+          key: ${{ runner.os }}-munki-code-${{ env.MUNKI_COMMIT }}
+
+      - name: Checkout Munki code
+        if: steps.munki-code-cache.outputs.cache-hit != 'true'
+        uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9  # v3.5.3
+        with:
+          repository: munki/munki
+          ref: ${{ env.MUNKI_COMMIT }}
+          path: munki
+
+      - name: Run repoclean
+        run: |
+          shebang="#!$(which python)"
+          sed -i "1 s|.*|${shebang}|" munki/code/client/makecatalogs
+          python munki/code/client/repoclean --auto --keep 2 munki_repo
+
+      - name: Push changes
+        run: |
+          cd munki_repo/
+          git config --global user.name "runner"
+          git config --global user.email "runner@githubactions.local"
+          git checkout -b "repoclean-`date +'%Y-%m-%d'`"
+          git add -u pkgsinfo/ pkgs/
+          if git diff-index --quiet HEAD; then
+            echo "No changes. Nothing to commit.";
+          else
+            git commit -m "`date +'%Y-%m-%d'` repoclean";
+            git push --set-upstream origin "repoclean-`date +'%Y-%m-%d'`";
+          fi
