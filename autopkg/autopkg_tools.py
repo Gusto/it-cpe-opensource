@@ -15,21 +15,24 @@
 #
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import os
-import sys
 import json
+import os
 import plistlib
-import requests
 import subprocess
-from pathlib import Path
-from optparse import OptionParser
+import sys
 from datetime import datetime
+from optparse import OptionParser
+from pathlib import Path
+
+import requests
+import yaml
 
 DEBUG = os.environ.get("DEBUG", False)
 SLACK_WEBHOOK = os.environ.get("SLACK_WEBHOOK_TOKEN", None)
 MUNKI_REPO = os.path.join(os.getenv("GITHUB_WORKSPACE", "/tmp/"), "munki_repo")
 OVERRIDES_DIR = os.path.relpath("overrides/")
 RECIPE_TO_RUN = os.environ.get("RECIPE", None)
+
 
 class Recipe(object):
     def __init__(self, path):
@@ -46,7 +49,10 @@ class Recipe(object):
     def plist(self):
         if self._keys is None:
             with open(self.path, "rb") as f:
-                self._keys = plistlib.load(f)
+                if self.path.endswith(".yaml"):
+                    self._keys = yaml.load(f, Loader=yaml.FullLoader)
+                else:
+                    self._keys = plistlib.load(f)
 
         return self._keys
 
@@ -72,8 +78,9 @@ class Recipe(object):
         return self.plist["Input"]["NAME"]
 
     def verify_trust_info(self):
-        cmd = ["/usr/local/bin/autopkg", "verify-trust-info", self.path, "-vvv"]
-        cmd = " ".join(cmd)
+        cmd = " ".join(
+            ["/usr/local/bin/autopkg", "verify-trust-info", self.path, "-vvv"]
+        )
 
         if DEBUG:
             print("Running " + str(cmd))
@@ -92,8 +99,7 @@ class Recipe(object):
         return self.verified
 
     def update_trust_info(self):
-        cmd = ["/usr/local/bin/autopkg", "update-trust-info", self.path]
-        cmd = " ".join(cmd)
+        cmd = " ".join(["/usr/local/bin/autopkg", "update-trust-info", self.path])
 
         if DEBUG:
             print("Running " + str(cmd))
@@ -169,7 +175,9 @@ def git_run(cmd):
         hide_cmd_output = False
 
     try:
-        result = subprocess.run(" ".join(cmd), shell=True, cwd=MUNKI_REPO, capture_output=hide_cmd_output)
+        result = subprocess.run(
+            " ".join(cmd), shell=True, cwd=MUNKI_REPO, capture_output=hide_cmd_output
+        )
     except subprocess.CalledProcessError as e:
         print(e.stderr)
         raise e
@@ -305,7 +313,11 @@ def slack_alert(recipe, opts):
                         "username": "Autopkg",
                         "as_user": True,
                         "title": task_title,
-                        "color": "warning" if not recipe.verified else "good" if not recipe.error else "danger",
+                        "color": "warning"
+                        if not recipe.verified
+                        else "good"
+                        if not recipe.error
+                        else "danger",
                         "text": task_description,
                         "mrkdwn_in": ["text"],
                     }
@@ -358,7 +370,9 @@ def main():
 
     failures = []
 
-    recipes = RECIPE_TO_RUN.split(", ") if RECIPE_TO_RUN else opts.list if opts.list else None
+    recipes = (
+        RECIPE_TO_RUN.split(", ") if RECIPE_TO_RUN else opts.list if opts.list else None
+    )
     if recipes is None:
         print("Recipe --list or RECIPE_TO_RUN not provided!")
         sys.exit(1)
