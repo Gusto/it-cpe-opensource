@@ -51,6 +51,7 @@
 		"minute": 30
 	},
 	"enforce_force_install_time": true,
+	"enfoce_force_install_date": true,
 	"force_install_denylist": [],
 	"notify_slack": true,
 	"slack_channel": "#example-slack-channel",
