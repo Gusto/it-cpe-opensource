@@ -367,7 +367,7 @@ def promote_pkg(current_plist, path):
     result["from"] = latest_catalog
     result["to"] = next_catalog
     plist["_metadata"]["last_promoted"] = arrow.now().datetime
-    if not name in CONFIG["force_install_denylist"]:
+    if CONFIG.get("enforce_force_install_date") and not name in CONFIG.get("force_install_denylist", []):
         plist["force_install_after_date"] = (
             arrow.now().shift(days=+get_force_install_days(next_catalog)).datetime
         )

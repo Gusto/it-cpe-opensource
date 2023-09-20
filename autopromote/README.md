@@ -83,6 +83,10 @@ Format: `{"hour": int, "minute": int}`
 #### enforce_force_install_time
  Have you decided 4:30 is a bad force install time? Set this value to true and configure the `force_install_time` to regulate the hour and minute, and, if set, the day (`patch_tuesday`) your package force install datetimes use.
 
+#### enforce_force_install_date
+
+ If `false`, `force_install_after_date` will not be updated in the output pkginfo(s). Neither a promotion period delta nor a `force_install_time` will be applied. The existing date, if set, will be preserved.
+
 #### force_install_denylist
  A list of pkginfos (as defined in their `name` attribute) on which no force_install_after_date will ever be set.
 
