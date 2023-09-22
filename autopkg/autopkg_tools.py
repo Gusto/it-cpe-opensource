@@ -231,15 +231,8 @@ def handle_recipe(recipe, opts):
 
 
 def parse_recipes(recipes):
-    recipe_list = []
-    ## Added this section so that we can run individual recipes
-    if RECIPE_TO_RUN:
-        for recipe in recipes:
-            ext = os.path.splitext(recipe)[1]
-            if ext != ".recipe":
-                recipe_list.append(recipe + ".recipe")
-            else:
-                recipe_list.append(recipe)
+    if RECIPE_TO_RUN:  # Individual recipes, not a run list
+        recipe_list = [recipe for recipe in recipes]
     else:
         ext = os.path.splitext(recipes)[1]
         if ext == ".json":
@@ -247,7 +240,7 @@ def parse_recipes(recipes):
         elif ext == ".plist":
             parser = plistlib.load
         else:
-            print(f'Invalid run list extension "{ ext }" (expected plist or json)')
+            print(f"Invalid run list extension { ext } (expected plist or json)")
             sys.exit(1)
 
         with open(recipes, "rb") as f:

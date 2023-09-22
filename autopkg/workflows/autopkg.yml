@@ -8,7 +8,7 @@ on:
   workflow_dispatch: # manually triggered
     inputs:
       recipe:
-        description: Optional recipe to run (e.g. Firefox.munki)
+        description: Optional recipe to run (e.g. Firefox.munki.recipe)
         required: false
       debug:
         description: Enable debug
