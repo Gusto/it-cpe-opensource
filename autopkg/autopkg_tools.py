@@ -232,7 +232,7 @@ def handle_recipe(recipe, opts):
 
 def parse_recipes(recipes):
     if RECIPE_TO_RUN:  # Individual recipes, not a run list
-        recipe_list = [recipe for recipe in recipe_list]
+        recipe_list = [recipe for recipe in recipes]
     else:
         ext = os.path.splitext(recipes)[1]
         if ext == ".json":
