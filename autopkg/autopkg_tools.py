@@ -78,12 +78,10 @@ class Recipe(object):
         return self.plist["Input"]["NAME"]
 
     def verify_trust_info(self):
-        cmd = " ".join(
-            ["/usr/local/bin/autopkg", "verify-trust-info", self.path, "-vvv"]
-        )
+        cmd = ["/usr/local/bin/autopkg", "verify-trust-info", self.path]
 
         if DEBUG:
-            print("Running " + str(cmd))
+            print("Running " + str(" ".join(cmd)))
 
         p = subprocess.Popen(
             cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True
@@ -99,10 +97,10 @@ class Recipe(object):
         return self.verified
 
     def update_trust_info(self):
-        cmd = " ".join(["/usr/local/bin/autopkg", "update-trust-info", self.path])
+        cmd = ["/usr/local/bin/autopkg", "update-trust-info", self.path]
 
         if DEBUG:
-            print("Running " + str(cmd))
+            print("Running " + str(" ".join(cmd)))
 
         # Fail loudly if this exits 0
         try:
