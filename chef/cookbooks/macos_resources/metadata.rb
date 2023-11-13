@@ -1,0 +1,7 @@
+name "macos_resources"
+maintainer "Gusto, Inc."
+maintainer_email "noreply@gusto.com"
+license "Apache-2.0"
+description "Custom resources"
+version "0.1.0"
+chef_version ">= 16.0"
