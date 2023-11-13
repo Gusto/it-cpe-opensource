@@ -1,0 +1,137 @@
+name: Cinc integration testing
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+
+# Cancel in-progress builds when new commits are pushed.
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  cookstyle:
+    name: Run Cookstyle and ChefSpec
+    runs-on: ubuntu-latest
+    if: ${{ github.actor != 'dependabot[bot]' }}
+    container: cincproject/workstation:23.7.1042@sha256:fa0780d7be9c35e0a51209e240c49b63a1464e638531c6518a0b217bd328cb43  # from https://hub.docker.com/r/cincproject/workstation/tags
+    timeout-minutes: 10
+    steps:
+      - name: Checkout latest commit
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11  # v4.1.1
+
+      - name: Enable rubocop matcher and run cookstyle
+        working-directory: cookbooks
+        run: |
+          echo "::add-matcher::.github/rubocop_matcher.json"
+          cookstyle .
+
+      - name: Run ChefSpec
+        run: |
+          cd cookbooks/foo && cinc exec rspec
+
+  macOS:
+    runs-on: macos-latest
+    if: ${{ github.actor != 'dependabot[bot]' }}
+    needs: [cookstyle]
+    timeout-minutes: 15
+    env:
+      CINC_CLIENT_SHA256: "c1b44b67d4cbd0c46833b5b6082ce494f4194ad91704ab7d8ba3170f5d72039f"
+      CINC_CLIENT_DMG_URL: "https://ftp.osuosl.org/pub/cinc/files/stable/cinc/18.2.7/mac_os_x/12/cinc-18.2.7-1.x86_64.dmg"  # OSUOSL hosts a TLS-enabled mirror of downloads.cinc.sh
+    steps:
+      - name: Checkout latest commit
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11  # v4.1.1
+
+      - name: Cache Cinc installer
+        uses: actions/cache@704facf57e6136b1bc63b828d79edcd491f0ee84  # v3.3.2
+        id: cinc-dmg-cache
+        with:
+          path: /tmp/cinc.dmg
+          key: ${{ runner.os }}-cinc-installer-${{ env.CINC_CLIENT_SHA256 }}
+
+      - name: Download Cinc
+        if: steps.cinc-dmg-cache.outputs.cache-hit != 'true'
+        run: |
+          curl -L $CINC_CLIENT_DMG_URL --output /tmp/cinc.dmg
+
+      - name: Verify Cinc checksum
+        working-directory: /tmp
+        run: |
+          echo "${{ env.CINC_CLIENT_SHA256 }} cinc.dmg" >> SHA256SUM
+          if shasum -a 256 cinc.dmg; then
+            echo "SHA256 checksum matches."
+          else
+            echo "SHA256 checksum failure."
+            exit 1
+          fi
+
+      - name: Install Cinc
+        run: |
+          hdiutil mount /tmp/cinc.dmg -mountpoint /Volumes/Cinc
+          sudo installer -pkg /Volumes/Cinc/cinc-*.x86_64.pkg -target /
+
+      - name: Retrieve data bag key from Github secrets
+        run: |
+          echo "$DATABAG_KEY" | sudo tee /etc/cinc/encrypted_data_bag_secret
+        env:
+          DATABAG_KEY: ${{ secrets.DATABAG_KEY }}
+
+      - name: Run Cinc
+        run: |
+          sudo cinc-client -z -o cpe_init
+
+  Windows:
+    runs-on: windows-2022
+    if: ${{ github.actor != 'dependabot[bot]' }}
+    timeout-minutes: 15
+    needs: [cookstyle]
+    env:
+      CINC_CLIENT_SHA256: "238032b3f9fc24ee1b2c858e069b0043746218140d5fb3dd07123d632b7fb5bf"
+      CINC_CLIENT_MSI_URL: "https://ftp.osuosl.org/pub/cinc/files/stable/cinc/18.2.7/windows/2012r2/cinc-18.2.7-1-x64.msi"  # OSUOSL hosts a TLS-enabled mirror of downloads.cinc.sh
+    steps:
+      - name: Checkout latest commit
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11  # v4.1.1
+        with:
+          path: chef-repo
+
+      - name: Cache Cinc installer
+        uses: actions/cache@704facf57e6136b1bc63b828d79edcd491f0ee84  # v3.3.2
+        id: cinc-msi-cache
+        with:
+          path: C:\cinc.msi
+          key: ${{ runner.os }}-cinc-installer-${{ env.CINC_CLIENT_SHA256 }}
+
+      - name: Download Cinc
+        if: steps.cinc-msi-cache.outputs.cache-hit != 'true'
+        run: |
+          Invoke-WebRequest -Uri ${{ env.CINC_CLIENT_MSI_URL }} -OutFile C:\cinc.msi
+
+      - name: Calculate Cinc checksum
+        run: |
+          chcp 65001 #set code page to utf-8
+          echo ("DOWNLOADED_MSI=" + $(Get-FileHash c:\cinc.msi -Algorithm SHA256 | Select-Object -ExpandProperty Hash)) >> $env:GITHUB_ENV
+
+      - name: Verify Cinc checksum
+        run: |
+          if ( "${{ env.DOWNLOADED_MSI }}" -eq "${{ env.CINC_CLIENT_SHA256 }}")
+          {
+              Write-Host "SHA256 checksum matches."
+          }
+          else
+          {
+              Write-Warning "SHA256 checksum failure."
+              exit 1
+          }
+
+      - name: Install Cinc
+        run: |
+          msiexec /qn /i c:\cinc.msi
+
+      - name: Retrieve data bag key from Github secrets and run Cinc
+        working-directory: chef-repo
+        run: |
+          while (!(Test-Path "C:\cinc-project\cinc\LICENSE")) { Start-Sleep 5 }
+          "$env:DATABAG_KEY" > C:/cinc/encrypted_data_bag_secret
+          C:\cinc-project\cinc\bin\cinc-client.bat -z -o cpe_init
+        env:
+          DATABAG_KEY: ${{ secrets.DATABAG_KEY }}

@@ -1,10 +1,9 @@
-#
-name 'cpe_printers'
-maintainer 'Gusto'
-maintainer_email 'it-cpe@gusto.com'
-license 'All rights reserved'
-description 'Configures Printers'
-long_description IO.read(File.join(File.dirname(__FILE__), 'README.md'))
-version '0.0.1'
+name "cpe_printers"
+maintainer "Gusto, Inc."
+maintainer_email "noreply@gusto.com"
+license "Apache-2.0"
+description "Manages and configures CUPS printers on macOS"
+version "0.0.1"
+chef_version ">= 16.0"
 
-depends 'cpe_utils'
+supports "mac_os_x"

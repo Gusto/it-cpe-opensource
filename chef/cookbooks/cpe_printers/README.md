@@ -3,34 +3,54 @@ cpe_printers Cookbook
 
 Requirements
 ------------
-Mac OS X
-
-Attributes
-----------
-* node['cpe_printers']['configure']
-* node['cpe_printers']['printers']
-* node['cpe_printers']['printers_to_delete']
-* node['cpe_printers']['prefix'] - Defaults to node['organization'] if nil
-* node['cpe_printers']['defaults']
-* node['cpe_printers']['delete_mcx_printers']
-* node['cpe_printers']['reset_cups_if_neccessary']
+macOS
 
 Usage
 -----
-This cookbook offers idempotent management of CUPS printers on a Macbook. `lpadmin` is used to interact with the CUPS config.
+This cookbook provides idempotent management of CUPS printers on macOS via a custom resource: `macos_printer`.
 
-All printers have a cookbook-generated identifier, which includes the prefix defined in attributes. Much like cpe_profiles, if a prefixed printer is discovered, but not listed in the current printers list, it will be removed. Any recipe converging prior to `cpe_printers::default` can append to `node['cpe_printers']['printers']`.
+IPP printers are added via Airprint. LPD printers are supported, but will be removed in a future version of macOS.
 
-Printers should define a `DisplayName` and a `DeviceURI`, at minimum. Values in the defaults array will be added to every printer definition.
+### Properties
 
-Printers listed in printers_to_delete will be removed (in addition to prefix'd, unlisted printers). Printers installed via profile will be deleted if `node['cpe_printers']['delete_mcx_printers']` is set.
+**description** String
 
-Todo
------
+A human-readable name like "2nd floor copier."
 
-Rewrite to support the post-cups era (Catalina) if necessary.
+**location** String
 
-Dependencies
-----------
+Physical location like building or floor number.
 
-- cpe_utils' printers method
+**printer_name** String
+
+If different from resource name. CUPS doesn't support printer names containing SPACE, TAB, "/", or "#". As such, this resource strips those characters and replace spaces with underscores. For example, `Copier #1 (Paris) 2/4` is transformed to `Copier_1_(Paris)_24`.
+
+**shared** [true, false], default: false
+
+Whether or not the printer is shared.
+
+**uri** String
+
+This resource currently only supports URIs starting with `ipp://` and `lpd://`.
+
+### Example usage
+
+IPP printer
+```ruby
+macos_printer "Macoun (New York)" do
+  description "Macoun (New York)"
+  location "8th floor, New York"
+  uri "ipp://macoun.example.com"
+  action :create
+end
+```
+
+LPD printer (deprecated)
+```ruby
+macos_printer "Macoun (New York)" do
+  description "Macoun (New York)"
+  location "8th floor, New York"
+  uri "lpd://macoun.example.com"
+  action :create
+end
+```
