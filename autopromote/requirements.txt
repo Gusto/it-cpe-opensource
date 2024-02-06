@@ -150,9 +150,9 @@ slack-sdk==3.26.0 \
     --hash=sha256:147946f388ce73b17c377b823759fcb39c0eca7444ca0a942dc12a3940a4f44f \
     --hash=sha256:b84c2d93163166eb682e290c19334683c2d0f0cb4a5479c809706b44038fdda1
     # via -r requirements.in
-types-python-dateutil==2.8.19.14 \
-    --hash=sha256:1f4f10ac98bb8b16ade9dbee3518d9ace017821d94b057a425b069f834737f4b \
-    --hash=sha256:f977b8de27787639986b4e28963263fd0e5158942b3ecef91b9335c130cb1ce9
+types-python-dateutil==2.8.19.20240106 \
+    --hash=sha256:1f8db221c3b98e6ca02ea83a58371b22c374f42ae5bbdf186db9c9a76581459f \
+    --hash=sha256:efbbdc54590d0f16152fa103c9879c7d4a00e82078f6e2cf01769042165acaa2
     # via
     #   -r requirements.in
     #   arrow
