@@ -1,0 +1,13 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: c4a0b883114b00d8d76b479c820ce7950211c99b  # v4.5.0
+    hooks:
+      - id: check-yaml
+        name: Check YAML
+  - repo: local
+    hooks:
+      - id: reformat-plist
+        name: Format PLISTs
+        language: script
+        files: "^(ios|macos)/simplemdm/"
+        entry: bin/lint_mobileconfig.sh

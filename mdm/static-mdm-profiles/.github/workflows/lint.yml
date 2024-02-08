@@ -1,0 +1,35 @@
+name: Lint profiles
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+    paths:
+      - "**.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: Lint profiles
+    runs-on: ubuntu-latest
+    if: ${{ github.actor != 'dependabot[bot]' }}
+    timeout-minutes: 5
+    steps:
+      - name: Checkout latest commit
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11  # v4.1.1
+
+      - name: Lint YAML
+        run: |
+          yamllint -c .github/.yamllint .
+
+      - name: Validate PLIST payloads
+        run: |
+          for PROFILE in $(git diff HEAD~1 --name-only --diff-filter=rd :^.github :^README.md :^.gitignore | uniq)
+          do
+            # Extract profile payload
+            cat $PROFILE | yq ".mobileconfig" > temp.plist
+
+            # Validate PLIST
+            python3 -c "import plistlib; plistlib.load(open('./temp.plist', 'rb'))"
+          done
