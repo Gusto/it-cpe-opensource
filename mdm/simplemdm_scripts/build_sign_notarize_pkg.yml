@@ -1,0 +1,156 @@
+name: Build and deploy macOS package to SimpleMDM
+
+on:
+  workflow_dispatch:
+    inputs:
+      SIMPLEMDM_INSTANCE:
+        default: development
+        description: "SimpleMDM instance"
+        required: true
+        type: choice
+        options:
+          - production
+          - development
+      SIMPLEMDM_UPLOAD:
+        default: true
+        description: "Upload to SimpleMDM"
+        required: true
+        type: boolean
+      GITHUB_RELEASE:
+        default: false
+        description: "Create release"
+        required: true
+        type: boolean
+
+  push:
+    paths-ignore:
+      - '.github/**'
+    branches: [ main ]
+
+jobs:
+  macOS:
+    runs-on: macos-latest
+    timeout-minutes: 15
+    env:
+      APPLE_SIGNING_ID: "foo"
+      BUNDLE_IDENTIFIER: "com.foo.bar"
+      DEVELOPER_ID_APPLICATION_IDENTITY: "Developer ID Application: Foocorp, Inc. (WAZZUPHI)"
+      DEVELOPER_ID_INSTALLER_IDENTITY: "Developer ID Installer: Foocorp, Inc. (WAZZUPHI)"
+      DEVELOPER_TEAM_ID: "WAZZUPHI"
+      GH_TOKEN: ${{ github.token }}
+      KEYCHAIN_PASSPHRASE: "anyrandomstring" # Not a secret since the VM gets destroyed after run.
+      SIMPLEMDM_APP_ID: 1337
+      SIMPLEMDM_APP_ID_DEV: 2600
+    steps:
+      - name: Checkout this repo at HEAD
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          lfs: true
+
+      - name: Create build keychain and set as default
+        run: |
+          security create-keychain -p "$KEYCHAIN_PASSPHRASE" build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p "$KEYCHAIN_PASSPHRASE" build.keychain
+
+      - name: Import "Developer ID Installer" signing key into build keychain
+        run: |
+          echo "${{ secrets.DEVELOPER_ID_INSTALLER_PKCS12 }}" > DEVELOPER_ID_INSTALLER_PKCS12.p12.txt
+          base64 --decode DEVELOPER_ID_INSTALLER_PKCS12.p12.txt -o DEVELOPER_ID_INSTALLER_PKCS12.p12
+          security import \
+            DEVELOPER_ID_INSTALLER_PKCS12.p12 \
+            -k build.keychain \
+            -f pkcs12 \
+            -T /usr/bin/codesign \
+            -T /usr/bin/security \
+            -T /usr/bin/productbuild \
+            -P "${{ secrets.DEVELOPER_ID_CERT_PASSPHRASE }}"
+
+      # Binary codesigning isn't currently required, but why not?
+      - name: Import "Developer ID Application" signing key into build keychain
+        run: |
+          echo "${{ secrets.DEVELOPER_ID_APPLICATION_PKCS12 }}" > DEVELOPER_ID_APPLICATION_PKCS12.p12.txt
+          base64 --decode DEVELOPER_ID_APPLICATION_PKCS12.p12.txt -o DEVELOPER_ID_APPLICATION_PKCS12.p12
+          security import \
+            DEVELOPER_ID_APPLICATION_PKCS12.p12 \
+            -k build.keychain \
+            -f pkcs12 \
+            -T /usr/bin/codesign \
+            -T /usr/bin/security \
+            -T /usr/bin/productbuild \
+            -P "${{ secrets.DEVELOPER_ID_CERT_PASSPHRASE }}"
+
+      - name: Set keychain partition list
+        run: |
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PASSPHRASE" build.keychain
+
+      - name: Generate release version
+        run: |
+          echo "release_version=`date +'%Y.%m.%d.%H.%M'`" >> $GITHUB_ENV
+
+      - name: Build unsigned packages
+        run: |
+          pkgbuild --root package/payload --scripts package/scripts --identifier "$BUNDLE_IDENTIFIER" mac_package.pkg --version ${{ env.release_version }}
+
+      - name: Determine pkg names
+        run: |
+          echo "package_pkg_name=mac_package-${{ env.release_version }}" >> $GITHUB_ENV
+
+      - name: Sign deployment packages
+        run: |
+          productbuild --sign "$DEVELOPER_ID_INSTALLER_IDENTITY" --timestamp --identifier "$BUNDLE_IDENTIFIER" --package mac_package.pkg ${{ env.package_pkg_name }}.pkg
+
+      - name: Attach package artifact to workflow run
+        uses: actions/upload-artifact@a8a3f3ad30e3422c9c7b888a15615d19a852ae32 # v3.1.3
+        with:
+          name: ${{ env.package_pkg_name }}
+          path: ${{ env.package_pkg_name }}.pkg
+          if-no-files-found: error
+
+      # Preserved in case Apple requires notarization for future macOS releases
+      # - name: Notarize deployment package
+      #   run: |
+      #     xcrun altool --notarize-app \
+      #       --primary-bundle-id "$BUNDLE_IDENTIFIER" \
+      #       --username $APPLE_SIGNING_ID \
+      #       --password ${{ secrets.NOTARIZATION_APP_SPECIFIC_PASSWORD }} \
+      #       --team-id "$DEVELOPER_TEAM_ID" \
+      #       --file ${{ env.package_pkg_name }}.pkg
+
+      # Preserved for posterity. Creates initial pkg if none exists.
+      # - name: Upload initial package to SimpleMDM
+      #   run: |
+      #     curl --silent --request POST \
+      #         --url https://a.simplemdm.com/api/v1/apps \
+      #         --form binary=@${{ env.package_pkg_name }}.pkg \
+      #         --user "${{ secrets.SIMPLEMDM_API_KEY }}": \
+      #         --form name=${{ env.package_pkg_name }}
+
+      - name: Upload updated package to SimpleMDM (production)
+        if: |
+          (github.event.inputs.SIMPLEMDM_INSTANCE == 'production' && github.event.inputs.SIMPLEMDM_UPLOAD == 'true') ||
+          (github.event_name == 'push' && github.ref == 'refs/heads/main')
+        run: |
+          curl --silent --request PATCH \
+              --url https://a.simplemdm.com/api/v1/apps/$SIMPLEMDM_APP_ID \
+              --form binary=@${{ env.package_pkg_name }}.pkg \
+              --form deploy_to=none \
+              --form name=mac_package \
+              --user "${{ secrets.SIMPLEMDM_API_KEY }}":
+
+      - name: Upload updated package to SimpleMDM (development)
+        if: ${{ github.event.inputs.SIMPLEMDM_INSTANCE == 'development' && github.event.inputs.SIMPLEMDM_UPLOAD == 'true' }}
+        run: |
+          curl --silent --request PATCH \
+              --url https://a.simplemdm.com/api/v1/apps/$SIMPLEMDM_APP_ID_DEV \
+              --form binary=@${{ env.package_pkg_name }}.pkg \
+              --form deploy_to=none \
+              --form name=mac_package \
+              --user "${{ secrets.SIMPLEMDM_API_KEY_DEV }}":
+
+      - name: Create release
+        if: |
+          (github.event.inputs.GITHUB_RELEASE == 'true') ||
+          (github.event_name == 'push' && github.ref == 'refs/heads/main')
+        run: |
+          gh release create ${{ env.release_version }} ${{ env.package_pkg_name }}.pkg --generate-notes

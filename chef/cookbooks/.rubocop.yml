@@ -1,0 +1,58 @@
+# https://docs.rubocop.org/rubocop/cops_style.html
+# https://rubystyle.guide/
+# https://docs.chef.io/workstation/cookstyle/
+# https://docs.chef.io/workstation/cookstyle/cops/
+
+inherit_from: .rubocop_todo.yml
+
+AllCops:
+  TargetRubyVersion: 2.6
+
+# CPE-specific rules
+Style/EmptyElse:
+  EnforcedStyle: empty
+
+Style/StringLiterals:
+  EnforcedStyle: double_quotes
+
+Style/TrailingCommaInArrayLiteral:
+  EnforcedStyleForMultiline: comma
+
+Style/TrailingCommaInHashLiteral:
+  EnforcedStyleForMultiline: comma
+
+### Disabled rules
+
+# Layout
+Layout/ElseAlignment:
+  Enabled: false
+
+Layout/EndAlignment:
+  Enabled: false
+
+Layout/IndentationWidth:
+  Enabled: false
+
+# Lint
+Lint/ImplicitStringConcatenation:
+  Enabled: false
+
+# Style
+Style/ConditionalAssignment:
+  Enabled: false
+
+Style/LineEndConcatenation:
+  Enabled: false
+
+Style/Next:
+  Enabled: false
+
+Style/TrailingCommaInArguments:
+  Enabled: false
+
+Style/RedundantReturn:
+  Enabled: false
+
+Style/WordArray:
+  Enabled: false
+

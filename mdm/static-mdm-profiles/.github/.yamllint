@@ -1,0 +1,19 @@
+extends: default
+
+rules:
+  document-start: disable
+  indentation:
+    spaces: 2
+    indent-sequences: true
+    check-multi-line-strings: false
+
+  line-length: disable
+  new-line-at-end-of-file: disable
+
+  quoted-strings:
+    quote-type: double
+    required: false
+    allow-quoted-quotes: false
+
+  truthy:
+    check-keys: false

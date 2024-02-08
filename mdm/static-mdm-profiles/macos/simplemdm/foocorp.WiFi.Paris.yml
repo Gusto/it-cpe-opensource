@@ -1,0 +1,39 @@
+name: "foocorp.WiFi.Paris"
+user_scope: false
+attribute_support: false
+escape_attributes: null
+reinstall_after_os_update: false
+mobileconfig: |
+  <?xml version="1.0" encoding="UTF-8"?>
+  <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+  <plist version="1.0">
+  <dict>
+  	<key>PayloadContent</key>
+  	<array>
+  		<dict>
+  			<key>AutoJoin</key>
+  			<true/>
+  			<key>EncryptionType</key>
+  			<string>WPA2</string>
+  			<key>Interface</key>
+  			<string>BuiltInWireless</string>
+  			<key>Password</key>
+  			<string>$PROFILE_SECRET_WIFI_PASSPHRASE</string>
+  			<key>PayloadDisplayName</key>
+  			<string>WiFi (Paris Office)</string>
+  			<key>PayloadIdentifier</key>
+  			<string>foocorp.WiFi.Paris-com.apple.wifi.managed</string>
+  			<key>PayloadType</key>
+  			<string>com.apple.wifi.managed</string>
+  			<key>PayloadUUID</key>
+  			<string>B09E26AF-C886-405D-9579-EF4EEE9BA3FF</string>
+  			<key>PayloadVersion</key>
+  			<integer>1</integer>
+  			<key>SSID_STR</key>
+  			<string>Foocorp</string>
+  		</dict>
+  	</array>
+  	<key>PayloadType</key>
+  	<string>Configuration</string>
+  </dict>
+  </plist>
