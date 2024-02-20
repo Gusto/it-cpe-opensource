@@ -146,9 +146,9 @@ six==1.16.0 \
     # via
     #   -r requirements.in
     #   python-dateutil
-slack-sdk==3.26.2 \
-    --hash=sha256:a10e8ee69ca17d274989d0c2bbecb875f19898da3052d8d57de0898a00b1ab52 \
-    --hash=sha256:bcdac5e688fa50e9357ecd00b803b6a8bad766aa614d35d8dc0636f40adc48bf
+slack-sdk==3.27.0 \
+    --hash=sha256:811472ce598db855ab3c02f098fa430323ccb253cfe17ba20c7b05ab206d984d \
+    --hash=sha256:a901c68cb5547d5459cdefd81343d116db56d65f6b33f4081ddf1cdd243bf07e
     # via -r requirements.in
 types-python-dateutil==2.8.19.20240106 \
     --hash=sha256:1f8db221c3b98e6ca02ea83a58371b22c374f42ae5bbdf186db9c9a76581459f \
