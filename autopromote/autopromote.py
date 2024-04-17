@@ -350,8 +350,13 @@ def promote_pkg(current_plist, path):
         logger.debug(
             f"Channel-shifted promotion period for {fullname} is {channel_shifted}"
         )
+
         since_last_promotion = arrow.now() - last_promoted
         days_since_last_promotion = since_last_promotion.days + since_last_promotion.seconds / SECONDS_IN_DAY
+        logger.debug(
+            f"{fullname} was last promoted {days_since_last_promotion} days ago"
+        )
+
         promotion_due = days_since_last_promotion >= channel_shifted
 
     if not promotion_due:
