@@ -26,6 +26,7 @@ from collections import OrderedDict
 CONFIG_FILE = os.getenv("CONFIG_FILE", "/usr/local/munki/autopromote.json")
 PKGINFOS_PATHS = []
 DEBUG = bool(os.environ.get("DEBUG"))
+SECONDS_IN_DAY = 60 * 60 * 24
 
 # Because things get easier if the catalogs are ordered - we don't always need to check "next"
 # in the catalog definition while considering a package for promotion.
@@ -349,7 +350,14 @@ def promote_pkg(current_plist, path):
         logger.debug(
             f"Channel-shifted promotion period for {fullname} is {channel_shifted}"
         )
-        promotion_due = (arrow.now() - last_promoted).days >= channel_shifted
+
+        since_last_promotion = arrow.now() - last_promoted
+        days_since_last_promotion = since_last_promotion.days + since_last_promotion.seconds / SECONDS_IN_DAY
+        logger.debug(
+            f"{fullname} was last promoted {days_since_last_promotion} days ago"
+        )
+
+        promotion_due = days_since_last_promotion >= channel_shifted
 
     if not promotion_due:
         return promoted, result
