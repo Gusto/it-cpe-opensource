@@ -25,7 +25,7 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Checkout your Munki LFS repo
-        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b  # v4.1.4
+        uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29  # v4.1.6
         with:
           repository: replace_with_your_munki_repo
           # GitHub deploy key with read/write access to repo
@@ -42,7 +42,7 @@ jobs:
 
       - name: Checkout Munki code
         if: steps.munki-code-cache.outputs.cache-hit != 'true'
-        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b  # v4.1.4
+        uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29  # v4.1.6
         with:
           repository: munki/munki
           ref: ${{ env.MUNKI_COMMIT }}
