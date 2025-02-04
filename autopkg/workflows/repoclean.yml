@@ -14,7 +14,7 @@ jobs:
       PYTHON_VERSION: "3.9.13"  # Match Munki Python
     steps:
       - name: Cache Python ${{ env.PYTHON_VERSION }}
-        uses: actions/cache@6849a6489940f00c2f30c0fb92c6274307ccb58a  # v4.1.2
+        uses: actions/cache@1bd1e32a3bdc45362d1e726936510720a7c30a57  # v4.2.0
         with:
           path: /opt/hostedtoolcache/Python/${{ env.PYTHON_VERSION }}
           key: ${{ runner.os }}-python-cache-${{ env.PYTHON_VERSION }}
@@ -34,7 +34,7 @@ jobs:
           path: munki_repo
 
       - name: Cache Munki code
-        uses: actions/cache@6849a6489940f00c2f30c0fb92c6274307ccb58a  # v4.1.2
+        uses: actions/cache@1bd1e32a3bdc45362d1e726936510720a7c30a57  # v4.2.0
         id: munki-code-cache
         with:
           path: munki
