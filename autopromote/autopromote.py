@@ -440,20 +440,22 @@ def notify_slack(promotions, error):
     }
     logger.debug(promotions)
     logger.debug(attachments)
-    # Actually send the Slack message
+    # Actually send the Slack message.
+    # username/icon_emoji per-message overrides were removed because Slack
+    # deprecates them via legacy_custom_bots_deprecated. Configure a custom
+    # display name and avatar on the Slack app's bot user instead.
     try:
-        response = client.chat_postMessage(
+        client.chat_postMessage(
             channel=CONFIG.get("slack_channel", "#test-please-ignore"),
             text="new autopromote.py run complete",
-            username="munki autopromoter",
-            icon_emoji=":munki:",
             attachments=[attachments])
-        assert response["message"]["text"] == "new autopromote.py run complete"
     except SlackApiError as e:
-        # You will get a SlackApiError if "ok" is False
-        assert e.response["ok"] is False
-        assert e.response["error"]  # str like 'invalid_auth', 'channel_not_found'
-        logger.error(f"Slack error: {e.response['error']}")
+        logger.error(
+            f"Slack error (non-fatal, autopromote run succeeded): "
+            f"{e.response.get('error', 'unknown')}"
+        )
+    except Exception as e:
+        logger.error(f"Unexpected Slack error (non-fatal): {e}")
 
 
 def output_results(promotions, error):
