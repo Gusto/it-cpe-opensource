@@ -90,6 +90,9 @@ Format: `{"hour": int, "minute": int}`
 #### force_install_denylist
  A list of pkginfos (as defined in their `name` attribute) on which no force_install_after_date will ever be set.
 
+#### force_install_allowlist
+ Optional. A list of pkginfos (by `name`) that are the *only* packages allowed to receive a `force_install_after_date`. When non-empty, deadlines are scoped to just these names (useful for piloting forced installs on a small set before going fleet-wide). When empty or absent, behavior is unchanged: every promoted package gets a deadline (subject to `force_install_denylist`). `force_install_denylist` still excludes even allowlisted names.
+
 #### channels
  Channels allow one to specify a faster or slower promotion schedule for specific packages. This is a dictionary of channel names and an int or float multiplier:
 
