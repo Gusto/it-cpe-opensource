@@ -412,7 +412,12 @@ def promote_pkgs(pkginfos):
 
 def notify_slack(promotions, error):
     """
-    Given a list of results from promote_pkgs, send a slack alert with a summary
+    Given a list of results from promote_pkgs, send a slack alert with a summary.
+
+    Returns True if Slack accepted the message and False if the notification
+    could not be delivered. A delivery failure is never fatal in itself - the
+    promotion work has already happened - but the caller is expected to act on
+    the False so that a dead notifier cannot go unnoticed indefinitely.
     """
 
     # Generate our Slack WebClient
@@ -422,7 +427,7 @@ def notify_slack(promotions, error):
     client = WebClient(token=token, ssl=sslcert)
     if not token:
         logger.error("No SLACK_TOKEN is in environment, skipping slack output")
-        return
+        return False
     # Build out the Slack message attachment showing what was promoted
     attachments = {
         "fields": [
@@ -441,9 +446,12 @@ def notify_slack(promotions, error):
     logger.debug(promotions)
     logger.debug(attachments)
     # Actually send the Slack message.
-    # username/icon_emoji per-message overrides were removed because Slack
-    # deprecates them via legacy_custom_bots_deprecated. Configure a custom
-    # display name and avatar on the Slack app's bot user instead.
+    # Per-message username/icon_emoji overrides are intentionally absent -
+    # set the display name and avatar on the Slack app's bot user instead.
+    # They are NOT the cause of a legacy_custom_bots_deprecated response:
+    # that error means the token itself belongs to a legacy custom bot
+    # integration, which Slack retired on 2025-03-31. Only replacing the
+    # token with one from a real Slack app fixes it.
     try:
         client.chat_postMessage(
             channel=CONFIG.get("slack_channel", "#test-please-ignore"),
@@ -451,11 +459,16 @@ def notify_slack(promotions, error):
             attachments=[attachments])
     except SlackApiError as e:
         logger.error(
-            f"Slack error (non-fatal, autopromote run succeeded): "
+            f"Slack notification failed, promotions were NOT announced: "
             f"{e.response.get('error', 'unknown')}"
         )
+        return False
     except Exception as e:
-        logger.error(f"Unexpected Slack error (non-fatal): {e}")
+        logger.error(
+            f"Slack notification failed, promotions were NOT announced: {e}"
+        )
+        return False
+    return True
 
 
 def output_results(promotions, error):
@@ -478,6 +491,7 @@ def main():
     logger.info("Autopromote: scanning munki_repo/pkgsinfo")
     promotions = {}
     error = None
+    notify_failed = False
     try:
         # Hello, this looks scary. It is not. We filter a list of packages
         # by whether safe_read_pkg returns None or a parsed plist.
@@ -506,10 +520,18 @@ def main():
         raise e
     finally:
         if CONFIG.get("notify_slack"):
-            notify_slack(promotions, error)
+            notify_failed = not notify_slack(promotions, error)
         if CONFIG.get("output_results"):
             output_results(promotions, error)
         logging.shutdown()
+
+    # Everything the run promoted is already written to disk by this point, so
+    # a dead notifier must not be reported as a lost promotion. Exit with a
+    # distinct, opt-in code instead, letting a wrapping pipeline finish its
+    # commit/push and then flag the unannounced run. Defaults to 0, which
+    # leaves the exit status unchanged for every existing caller.
+    if notify_failed:
+        sys.exit(CONFIG.get("notify_failure_exit_code", 0))
 
 
 if __name__ == "__main__":
