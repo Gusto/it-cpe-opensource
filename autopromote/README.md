@@ -51,7 +51,7 @@ To allow only 8.x versions of Teleport, set:
 
 #### fields_to_copy
  when a pkginfo is promoted for the first time (no `last_promoted`
-value is set), autopromote.py searchs for a previous semantic version of the pkginfo.
+value is set), autopromote.py searches for a previous semantic version of the pkginfo.
 If found, any/all of the fields in this array are copied to the newly promoted pkginfo.
 
 #### force_install_days

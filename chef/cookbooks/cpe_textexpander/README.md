@@ -37,7 +37,7 @@ Updates are disabled by default.
   * Like cpe_profiles, cpe_textexpander will remove existing snippets with this label and label managed snippet with it
     `node['organization']` if nil
 
-* `snippets_settings` dictionary descriping settings in `/Users/#{node.console_user}/Library/Application\ Support/TextExpander/Settings.textexpandersettings/group_*.xml`
+* `snippets_settings` dictionary describing settings in `/Users/#{node.console_user}/Library/Application\ Support/TextExpander/Settings.textexpandersettings/group_*.xml`
   * `snippetPlists`
     Array of snippets. Please see the commented example in `attributes/default.rb`
 

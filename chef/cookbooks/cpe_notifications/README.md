@@ -30,7 +30,7 @@ You may configure these keys:
   'SoundsEnabled' => true
 }
 ```
-You must use the application's bundle ID, generally found in an Info.plist, to configure its notificition setting.
+You must use the application's bundle ID, generally found in an Info.plist, to configure its notification setting.
 
 The example profile, below, contains the bundle IDs for several common applications with all alerts enabled.
 

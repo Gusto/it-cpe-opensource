@@ -22,7 +22,7 @@ Cookbook Design
 -----
 This cookbook is a client of this [middleware](https://github.com/Gusto/it-cpe-opensource/tree/master/chef/mdm_middleware), which is designed to be hosted in AWS Lambda. The cookbook is agnostic: the middleware can be reimplemented in your preferred language or environment.
 
-The cookbook also utilizes `hubcli`, VMware's CLI utility for interacting with a Workspace ONE instance. `hubcli` is a compontent of the Intelligent Hub agent, which must be installed. Additionally, `cpe_workspaceone` and `uber_helpers` provide chef's interface with `hubcli`.
+The cookbook also utilizes `hubcli`, VMware's CLI utility for interacting with a Workspace ONE instance. `hubcli` is a component of the Intelligent Hub agent, which must be installed. Additionally, `cpe_workspaceone` and `uber_helpers` provide chef's interface with `hubcli`.
 
 The cookbook expects `cpe_profiles` to populate a list of profiles to manage. Profiles are defined in their cookbooks, passed to `cpe_profiles`, passed to `cpe_profiles_workspaceone`, and, if an install is pending, passed to `cpe_workspaceone`. To manage a profile with this cookbook, add it to cpe_profiles's cookbook map - see Usage for examples.
 
