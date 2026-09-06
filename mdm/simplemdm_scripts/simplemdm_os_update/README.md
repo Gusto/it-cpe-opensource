@@ -7,7 +7,7 @@ A list of device IDs is parsed from each group and then iterated over to send MD
 `os_update_mode`: `download_only`, `notify_only`, `install_asap`, `force_update`
 `version_type`: `latest_minor_version`, `latest_major_version`
 
-To add or remove device groups, modify the `SIMPLEMDM_DEVICE_GROUPS` environemnt variable in your function. Note `os_update_mode` is only supported for macOS and ignored for iOS/tvOS. The key can still be included safely, which is useful for diverse groups of device types.
+To add or remove device groups, modify the `SIMPLEMDM_DEVICE_GROUPS` environment variable in your function. Note `os_update_mode` is only supported for macOS and ignored for iOS/tvOS. The key can still be included safely, which is useful for diverse groups of device types.
 
 ### Device group example
 ```

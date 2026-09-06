@@ -51,7 +51,7 @@ default["cpe_office"]["mac"] = {
     "OUIWhatsNewLastShownLink" => [18051, 18052],
   },
   "outlook" => {
-    "AutomaitcallyDownloadExternalContent" => nil,
+    "AutomaticallyDownloadExternalContent" => nil,
     "kSubUIAppCompletedFirstRunSetup1507" => true,
     "SendAllTelemetryEnabled" => false,
     "OUIWhatsNewLastShownLink" => nil,
