@@ -93,6 +93,9 @@ Format: `{"hour": int, "minute": int}`
 #### force_install_allowlist
  Optional. A list of pkginfos (by `name`) that are the *only* packages allowed to receive a `force_install_after_date`. When non-empty, deadlines are scoped to just these names (useful for piloting forced installs on a small set before going fleet-wide). When empty or absent, behavior is unchanged: every promoted package gets a deadline (subject to `force_install_denylist`). `force_install_denylist` still excludes even allowlisted names.
 
+#### force_install_carry_forward
+ Optional, default `false`. When `true`, a version promoted into a catalog can't get a later `force_install_after_date` than the unexpired one Macs in that catalog already face for the package's newest older version. Munki only enforces the deadline on the newest version in a Mac's catalogs, so without this, an app that ships a new version before its deadline arrives resets the deadline every time and the forced install rarely happens. Applies only to packages that get a deadline at all (`enforce_force_install_date`, `force_install_allowlist`, `force_install_denylist`). An expired deadline isn't carried, but one that is hours away is, so a new version can arrive with little notice.
+
 #### channels
  Channels allow one to specify a faster or slower promotion schedule for specific packages. This is a dictionary of channel names and an int or float multiplier:
 
