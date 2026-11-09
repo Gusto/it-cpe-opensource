@@ -375,7 +375,22 @@ def promote_pkg(current_plist, path):
     result["from"] = latest_catalog
     result["to"] = next_catalog
     plist["_metadata"]["last_promoted"] = arrow.now().datetime
-    if CONFIG.get("enforce_force_install_date") and not name in CONFIG.get("force_install_denylist", []):
+    # force_install_after_date scoping (ITCPE-3447):
+    #   - enforce_force_install_date is the master switch
+    #   - if force_install_allowlist is non-empty, ONLY those names get a
+    #     deadline (lets us pilot deadlines on a small set before going
+    #     fleet-wide); an empty/absent allowlist preserves prior behavior
+    #     (all promoted items get a deadline)
+    #   - force_install_denylist always excludes
+    force_install_allowlist = CONFIG.get("force_install_allowlist", [])
+    in_force_install_scope = (
+        not force_install_allowlist or name in force_install_allowlist
+    )
+    if (
+        CONFIG.get("enforce_force_install_date")
+        and in_force_install_scope
+        and name not in CONFIG.get("force_install_denylist", [])
+    ):
         plist["force_install_after_date"] = (
             arrow.now().shift(days=+get_force_install_days(next_catalog)).datetime
         )
