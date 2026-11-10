@@ -210,6 +210,50 @@ def get_force_install_days(catalog):
     return days
 
 
+def get_carry_forward_deadline(plist, catalog):
+    """
+    Returns the unexpired force_install_after_date of the newest older version of
+    plist's package already in catalog, or None.
+
+    Munki only enforces the deadline on the newest version in a Mac's catalogs, so
+    promoting a version into catalog replaces the deadline those Macs face.
+    Compared as naive wall-clock times, the way plistlib round-trips them.
+    """
+
+    try:
+        current_version = pkg_version(plist)
+    except semantic_version.InvalidVersion:
+        logger.warning(f"Can't parse {plist['name']} {plist['version']}; not carrying a deadline")
+        return None
+
+    older = []
+    for other, _ in PKGINFOS_PATHS:
+        if other["name"] != plist["name"] or catalog not in other.get("catalogs", []):
+            continue
+        try:
+            other_version = pkg_version(other)
+        except semantic_version.InvalidVersion:
+            # Without its version we can't tell which pkginfo Munki treats as newest.
+            logger.warning(f"Can't parse {other['name']} {other['version']}; not carrying a deadline")
+            return None
+        if other_version < current_version:
+            older.append((other_version, other))
+
+    if not older:
+        return None
+
+    # Builds of one version (e.g. per architecture) are separate pkginfos; take the earliest deadline.
+    newest_version = max(v for v, _ in older)
+    now = arrow.now().naive
+    deadlines = [
+        arrow.get(p["force_install_after_date"]).naive
+        for v, p in older
+        if v == newest_version and p.get("force_install_after_date")
+    ]
+    unexpired = [d for d in deadlines if d > now]
+    return min(unexpired) if unexpired else None
+
+
 def get_ideal_catalogs(catalogs):
     """
     Given a list of catalogs, returns the catalog which appears last
@@ -397,6 +441,14 @@ def promote_pkg(current_plist, path):
 
         if CONFIG.get("enforce_force_install_time") and CONFIG.get("force_install_time"):
             plist["force_install_after_date"] = get_force_install_time(plist)
+
+        if CONFIG.get("force_install_carry_forward"):
+            carried = get_carry_forward_deadline(plist, next_catalog)
+            if carried and carried < arrow.get(plist["force_install_after_date"]).naive:
+                logger.info(
+                    f"Carried {next_catalog}'s existing {name} deadline {carried} forward to {fullname}"
+                )
+                plist["force_install_after_date"] = arrow.get(carried).datetime
 
     logger.info(f"Promoted {fullname} from {result['from']} to {result['to']}")
 
